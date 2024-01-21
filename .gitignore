@@ -1,0 +1,6 @@
+bin/
+obj/
+fable_modules/
+node_modules/
+
+*.js
