@@ -3,7 +3,8 @@ namespace ResizeArray
 open System
 open System.Collections.Generic
 
-/// Operator +++ and ++ to combines the contents of two Sequences or ICollection<'T> into a new ResizeArray
+/// Open this module to get access to yhe operators +++ and ++ 
+/// to combines the contents of two Sequences or ICollection<'T> into a new ResizeArray
 module Operators =
     
     /// Operator +++ to copies the contents of two Sequences into a new ResizeArray
@@ -17,11 +18,12 @@ module Operators =
     /// The capacity of the new ResizeArray is the sum of the count of the two ICollection<'T>.
     let inline (++) (a : ICollection<'T>) ( b : ICollection<'T>) =
         let c: int = a.Count + b.Count
-        let l = new List<'T>(c)
+        let l = new ResizeArray<'T>(c)
         l.AddRange a
         l.AddRange b
         ResizeArray(l)
 
+[<Obsolete("not Obsolete but hidden, needs to be visible for inlining")>]
 module UtilResizeArray =
 
     /// This module is set to auto open when opening ResizeArray namespace.
@@ -29,25 +31,33 @@ module UtilResizeArray =
     [<AutoOpen>]
     module AutoOpenExtensionsExceptions =
 
-        type ArgumentException with
+        // type ArgumentException with
 
-            /// Raise ArgumentException with F# printf string formatting
-            /// this is also the base class of ArgumentOutOfRangeException and ArgumentNullException
-            static member RaiseBase msg =
-                Printf.kprintf (fun s -> raise (ArgumentException(s))) msg
+        //     /// Raise ArgumentException with F# printf string formatting
+        //     /// this is also the base class of ArgumentOutOfRangeException and ArgumentNullException
+        //     static member RaiseBase msg =
+        //         Printf.kprintf (fun s -> raise (ArgumentException(s))) msg
 
 
-        type IndexOutOfRangeException with
+        type ArgumentOutOfRangeException with
 
-            /// Raise IndexOutOfRangeException with F# printf string formatting
+            /// Raise ArgumentOutOfRangeException with F# printf string formatting
             static member Raise msg =
-                Printf.kprintf (fun s -> raise (IndexOutOfRangeException(s))) msg
+                Printf.kprintf (fun s -> raise (ArgumentOutOfRangeException(s))) msg
 
         type KeyNotFoundException with
 
             /// Raise KeyNotFoundException with F# printf string formatting
             static member Raise msg =
                 Printf.kprintf (fun s -> raise (KeyNotFoundException(s))) msg
+
+
+        type ArgumentNullException with
+
+            /// Check if null and raise System.ArgumentNullException 
+            static member Raise msg =                
+                    raise (System.ArgumentNullException("ResizeArray." + msg + " input is null!"))
+
 
     let toNiceString (x: 'T) = // TODO replace with better implementation
         match box x with 
@@ -69,7 +79,7 @@ module UtilResizeArray =
     let inline negIdx i len =
         let ii = if i < 0 then len + i else i
         if ii < 0 || ii >= len then
-            IndexOutOfRangeException.Raise "UtilResizeArray.negIdx: Bad index %d for items count %d." i len
+            ArgumentOutOfRangeException.Raise "UtilResizeArray.negIdx: Bad index %d for items count %d." i len
         ii
 
     /// Any int will give a valid index for given collection size.
@@ -78,4 +88,9 @@ module UtilResizeArray =
     let inline negIdxLooped i length =
         let t = i % length
         if t >= 0 then t else t + length
+
+    let inline isNullSeq x = 
+        match x with 
+        |null -> true 
+        | _ -> false
 

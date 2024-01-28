@@ -40,14 +40,25 @@ module Extensions =
             Expect.isTrue (a.IsEqualTo a) "IsEqualTo self"
             Expect.isTrue (a.IsEqualTo (a.Clone())) "IsEqualTo Clone"
             let b = a.Clone()
-            b.Set 2 3.0
-            Expect.isFalse (a.IsEqualTo b) "IsEqualTo Clone Set"
+            b.Set 2 9.9
+            Expect.isFalse (a.IsEqualTo b) "index 2 was set to 9.9"
+
             let bb = resizeArray {a.Clone()}            
             let aa = resizeArray {a.Clone()}
-            Expect.isFalse (aa.IsEqualTo bb) "IsEqualTo different ref"
+            Expect.isTrue (ResizeArray.equals2 aa bb) "equals 2"
+
             let bb = resizeArray {a.Clone()}            
             let aa = resizeArray {bb.First}
-            Expect.isTrue (aa.IsEqualTo bb) "IsEqualTo same ref"
+            Expect.isTrue (ResizeArray.equals2 aa bb) "equals 2"
+
+            let c = resizeArray {resizeArray {resizeArray {5;6}}}
+            let d = resizeArray {resizeArray {resizeArray {5;6}}}
+            #if FABLE_COMPILER
+            // because of https://github.com/fable-compiler/Fable/issues/3718
+            Expect.isTrue (ResizeArray.equals c d) "equals does check inner array in Fable"
+            #else
+            Expect.isFalse (ResizeArray.equals c d) "equals doesn't check inner array .NET"
+            #endif
 
         }   
 
@@ -55,7 +66,7 @@ module Extensions =
         testCase "LastIndex raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.LastIndex |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "LastIndex returns Count - 1 on non-empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
@@ -66,12 +77,12 @@ module Extensions =
         testCase "Last getter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.Last |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "Last setter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.Last <- 1
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "Last getter returns last item on non-empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
@@ -87,12 +98,12 @@ module Extensions =
         testCase "SecondLast getter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
             let testCode = fun () -> xs.SecondLast |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "SecondLast setter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
             let testCode = fun () -> xs.SecondLast <- 1
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "SecondLast getter returns second last item on ResizeArray with 2 or more items" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
@@ -108,12 +119,12 @@ module Extensions =
         testCase "ThirdLast getter raises exception on ResizeArray with less than 3 items" <| fun _ ->
             let xs = ResizeArray<int>([1; 2])
             let testCode = fun () -> xs.ThirdLast |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "ThirdLast setter raises exception on ResizeArray with less than 3 items" <| fun _ ->
             let xs = ResizeArray<int>([1; 2])
             let testCode = fun () -> xs.ThirdLast <- 1
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "ThirdLast getter returns third last item on ResizeArray with 3 or more items" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
@@ -129,12 +140,12 @@ module Extensions =
         testCase "First getter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.First |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "First setter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.First <- 1
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "First getter returns first item on non-empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
@@ -150,12 +161,12 @@ module Extensions =
         testCase "FirstAndOnly getter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
             let testCode = fun () -> xs.FirstAndOnly |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "FirstAndOnly getter raises exception on ResizeArray with more than one item" <| fun _ ->
             let xs = ResizeArray<int>([1; 2])
             let testCode = fun () -> xs.FirstAndOnly |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "FirstAndOnly getter returns the item on ResizeArray with exactly one item" <| fun _ ->
             let xs = ResizeArray<int>([1])
@@ -166,12 +177,12 @@ module Extensions =
         testCase "Second getter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
             let testCode = fun () -> xs.Second |> ignore
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "Second setter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
             let testCode = fun () -> xs.Second <- 1
-            Expect.throws testCode "Expected an IndexOutOfRangeException"
+            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
 
         testCase "Second getter returns second item on ResizeArray with 2 or more items" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])

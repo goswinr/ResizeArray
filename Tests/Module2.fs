@@ -22,10 +22,10 @@ type RarrWindowedTestInput<'t> =
     }
 
 module Module2 = 
- open Exns
+ open Exceptions
 
  let tests =
-  testList "module Tests 2" [
+  testList "Module2.fs Tests" [
 
     
     testCase "ResizeArray.Length" <| fun _ -> 
@@ -42,8 +42,8 @@ module Module2 =
         if resultEpt <> 0 then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.length  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.length  nullArr  |> ignore)
 
         // null array, argument name showing up
         //try
@@ -70,8 +70,8 @@ module Module2 =
         Assert.AreEqual([|  |].asRarr, resultEpt)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.indexed nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.indexed nullArr |> ignore)
 
         ()
 
@@ -95,8 +95,8 @@ module Module2 =
         if resultEpt <!> [|  |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map funcStr nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.map funcStr nullArr |> ignore)
 
         ()
 
@@ -118,13 +118,13 @@ module Module2 =
         if resultEpt <!> [|  |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:int[]
+        let nullArr = null:ResizeArray<int>
         let validArray = [| 1  |].asRarr
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map2 funcInt nullArr validArray |> ignore)
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map2 funcInt validArray nullArr |> ignore)
+        throwsNull (fun () -> ResizeArray.map2 funcInt nullArr validArray |> ignore)
+        throwsNull (fun () -> ResizeArray.map2 funcInt validArray nullArr |> ignore)
 
         // len1 <!> len2
-        CheckThrowsArgumentException(fun () -> ResizeArray.map2 funcInt [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.map2 funcInt [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
 
         ()
 
@@ -136,11 +136,11 @@ module Module2 =
         if resultInt <!> [| 9; 20; 35; 54; 77; 104; 135; 170  |].asRarr then Assert.Fail()
 
         // First array is shorter
-        CheckThrowsArgumentException (fun () -> ResizeArray.map3 funcInt [| 1..2  |].asRarr [| 2..9  |].asRarr [| 3..10  |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.map3 funcInt [| 1..2  |].asRarr [| 2..9  |].asRarr [| 3..10  |].asRarr |> ignore)
         // Second array is shorter
-        CheckThrowsArgumentException (fun () -> ResizeArray.map3 funcInt [| 1..8  |].asRarr [| 2..6  |].asRarr [| 3..10  |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.map3 funcInt [| 1..8  |].asRarr [| 2..6  |].asRarr [| 3..10  |].asRarr |> ignore)
         // Third array is shorter
-        CheckThrowsArgumentException (fun () -> ResizeArray.map3 funcInt [| 1..8  |].asRarr [| 2..9  |].asRarr [| 3..6  |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.map3 funcInt [| 1..8  |].asRarr [| 2..9  |].asRarr [| 3..6  |].asRarr |> ignore)
 
         // String array
         let funcStr a b c = a + b + c
@@ -152,11 +152,11 @@ module Module2 =
         if resultEmpty <!> [| |].asRarr then Assert.Fail()
 
         // Null array
-        // ResizeArray cant be null: let nullArray = null : int[]
+        let nullArray = null:ResizeArray<int>
         let nonNullArray = [|1 |].asRarr
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map3 funcInt nullArray nonNullArray nonNullArray |> ignore)
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map3 funcInt nonNullArray nullArray nonNullArray |> ignore)
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.map3 funcInt nonNullArray nonNullArray nullArray |> ignore)
+        throwsNull (fun () -> ResizeArray.map3 funcInt nullArray nonNullArray nonNullArray |> ignore)
+        throwsNull (fun () -> ResizeArray.map3 funcInt nonNullArray nullArray nonNullArray |> ignore)
+        throwsNull (fun () -> ResizeArray.map3 funcInt nonNullArray nonNullArray nullArray |> ignore)
 
         ()
 
@@ -180,8 +180,8 @@ module Module2 =
         Assert.AreEqual(100, resultEptAcc)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.mapFold funcStr "" nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.mapFold funcStr "" nullArr |> ignore)
 
         ()
 
@@ -205,8 +205,8 @@ module Module2 =
         Assert.AreEqual(100, resultEptAcc)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.mapFoldBack funcStr nullArr "" |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.mapFoldBack funcStr nullArr "" |> ignore)
 
         ()
 
@@ -228,8 +228,8 @@ module Module2 =
         if resultEpt <!> [|  |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.mapi funcStr nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.mapi funcStr nullArr |> ignore)
 
         ()
 
@@ -251,13 +251,13 @@ module Module2 =
         if resultEpt <!> [|  |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:int[]
+        let nullArr = null:ResizeArray<int>
         let validArray = [| 1  |].asRarr
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.mapi2 funcInt validArray  nullArr  |> ignore)
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.mapi2 funcInt  nullArr validArray |> ignore)
+        throwsNull (fun () -> ResizeArray.mapi2 funcInt validArray  nullArr  |> ignore)
+        throwsNull (fun () -> ResizeArray.mapi2 funcInt  nullArr validArray |> ignore)
 
         // len1 <!> len2
-        CheckThrowsArgumentException(fun () -> ResizeArray.mapi2 funcInt [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.mapi2 funcInt [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
 
         ()
 
@@ -274,11 +274,11 @@ module Module2 =
         // empty array -- argumentexception
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.max   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.max   nullArr  |> ignore)
 
         // len = 0
-        CheckThrowsArgumentException(fun() -> ResizeArray.max  [| |].asRarr |> ignore)
+        throwsRange(fun() -> ResizeArray.max  [| |].asRarr |> ignore)
 
         ()
 
@@ -297,11 +297,11 @@ module Module2 =
         // empty array -- argumentexception
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.maxBy funcStr   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.maxBy funcStr   nullArr  |> ignore)
 
         // len = 0
-        CheckThrowsArgumentException(fun() -> ResizeArray.maxBy funcInt (ResizeArray.empty<int>) |> ignore)
+        throwsRange(fun() -> ResizeArray.maxBy funcInt (ResizeArray.empty<int>) |> ignore)
 
         ()
 
@@ -318,11 +318,11 @@ module Module2 =
         // empty array -- argumentexception
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.min   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.min   nullArr  |> ignore)
 
         // len = 0
-        CheckThrowsArgumentException(fun () -> ResizeArray.min  [| |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.min  [| |].asRarr |> ignore)
 
         ()
 
@@ -341,11 +341,11 @@ module Module2 =
         // empty array -- argumentexception
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.minBy funcStr   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.minBy funcStr   nullArr  |> ignore)
 
         // len = 0
-        CheckThrowsArgumentException(fun () -> ResizeArray.minBy funcInt (ResizeArray.empty<int>) |> ignore)
+        throwsRange(fun () -> ResizeArray.minBy funcInt (ResizeArray.empty<int>) |> ignore)
 
         ()
 
@@ -404,8 +404,8 @@ module Module2 =
         if re <!> [| |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.partition (fun (x:string) -> x.Length >4)  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.partition (fun (x:string) -> x.Length >4)  nullArr  |> ignore)
 
         ()
 
@@ -424,8 +424,8 @@ module Module2 =
         if resultEpt <!> [| |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.permute (fun i -> (i+1) % 4)  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.permute (fun i -> (i+1) % 4)  nullArr  |> ignore)
 
         ()
 
@@ -440,11 +440,11 @@ module Module2 =
         if resultStr <> "E" then  Assert.Fail()
 
         // empty array
-        CheckThrowsArgumentException (fun () -> ResizeArray.reduce (fun x y -> x/y)  [| |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.reduce (fun x y -> x/y)  [| |].asRarr |> ignore)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.reduce (fun (x:string) (y:string) -> x.Remove(0,y.Length))  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.reduce (fun (x:string) (y:string) -> x.Remove(0,y.Length))  nullArr  |> ignore)
 
         ()
 
@@ -465,11 +465,11 @@ module Module2 =
         if resultStr2 <> "ABCD" then  Assert.Fail()
 
         // empty array
-        CheckThrowsArgumentException (fun () -> ResizeArray.reduceBack (fun x y -> x/y) [| |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.reduceBack (fun x y -> x/y) [| |].asRarr |> ignore)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.reduceBack (fun (x:string) (y:string) -> x.Remove(0,y.Length))  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.reduceBack (fun (x:string) (y:string) -> x.Remove(0,y.Length))  nullArr  |> ignore)
 
         ()
 
@@ -489,8 +489,8 @@ module Module2 =
         if resultEpt <!> [| |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.rev  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.rev  nullArr  |> ignore)
         ()
 
     
@@ -512,8 +512,8 @@ module Module2 =
         if resultEpt <!> [|5 |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.scan funcStr "begin"  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.scan funcStr "begin"  nullArr  |> ignore)
 
         ()
 
@@ -536,8 +536,8 @@ module Module2 =
         if resultEpt <!> [|5 |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.scanBack funcStr nullArr "begin"  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.scanBack funcStr nullArr "begin"  |> ignore)
 
         ()
 
@@ -550,7 +550,7 @@ module Module2 =
         let resultInt2 = ResizeArray.skip 0 [|1..10 |].asRarr
         if resultInt2 <!> [|1..10 |].asRarr then Assert.Fail()
 
-        CheckThrowsArgumentException (fun () ->  ResizeArray.skip -5 [|1..10 |].asRarr |> ignore)
+        throwsRange (fun () ->  ResizeArray.skip -5 [|1..10 |].asRarr |> ignore)
         //if resultInt3 <!> [|1..10 |].asRarr then Assert.Fail()
 
         // string List
@@ -562,10 +562,10 @@ module Module2 =
         if resultEpt <!> [| |].asRarr then Assert.Fail()
 
         // exceptions
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.skip 0 (null:string[]) |> ignore)
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.skip -3 (null:string[]) |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.skip 1 [| |].asRarr |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.skip 4 [|1; 2; 3 |].asRarr |> ignore)
+        throwsNull (fun () -> ResizeArray.skip 0 (null:ResizeArray<string>) |> ignore)
+        throwsNull (fun () -> ResizeArray.skip -3 (null:ResizeArray<string>) |> ignore)
+        throwsRange (fun () -> ResizeArray.skip 1 [| |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.skip 4 [|1; 2; 3 |].asRarr |> ignore)
 
     
     testCase "ResizeArray.SkipWhile" <| fun _ -> 
@@ -586,7 +586,7 @@ module Module2 =
         if resultEmpt <!> [|  |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.skipWhile (fun _ -> failwith "unexpected error") null |> ignore)
+        throwsNull (fun () -> ResizeArray.skipWhile (fun _ -> failwith "unexpected error") null |> ignore)
 
         // skip all
         let resultAll = ResizeArray.skipWhile (fun _ -> true) intArr
@@ -613,8 +613,8 @@ module Module2 =
         // empty array -- outofbundaryexception
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsNullRefException (fun () -> ResizeArray.set nullArr 0 "null"   |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.set nullArr 0 "null"   |> ignore)
 
         ()
 
@@ -641,8 +641,8 @@ module Module2 =
         if emptyArr <!> [| |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.sortInPlaceWith compare nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.sortInPlaceWith compare nullArr  |> ignore)
 
         // len = 2
         let len2Arr = [|8;3 |].asRarr
@@ -668,7 +668,7 @@ module Module2 =
         let strArr = [|"Lists"; "are"; "a"; "commonly"; "used"; "data"; "structure" |].asRarr
         ResizeArray.sortInPlaceBy (fun (x:string) -> x.Length)  strArr
         // note: ResizeArray.sortInPlaceBy is not stable, so we allow 2 results.
-        if strArr <!> [| "a"; "are";"data"; "used";"Lists"; "commonly";"structure" |].asRarr && strArr <!> [| "a"; "are"; "used"; "data"; "Lists"; "commonly";"structure" |].asRarr    then Assert.Fail()
+        if strArr <!> [| "a"; "are";"data"; "used";"Lists"; "commonly";"structure" |].asRarr && strArr <!> [| "a"; "are"; "used"; "data"; "Lists"; "commonly";"structure" |].asRarr  then Assert.Fail()
 
         // empty array
         let emptyArr:int ResizeArray = [|  |].asRarr
@@ -676,8 +676,8 @@ module Module2 =
         if emptyArr <!> [| |].asRarr then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.sortInPlaceBy (fun (x:string) -> x.Length) nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.sortInPlaceBy (fun (x:string) -> x.Length) nullArr |> ignore)
 
         // len = 2
         let len2Arr = [|8;3 |].asRarr
@@ -768,27 +768,39 @@ module Module2 =
         ()
 
     
-    testCase "ResizeArray.Sub" <| fun _ -> 
+    testCase "ResizeArray.Sub2" <| fun _ -> 
         // integer array
-        let resultInt = ResizeArray.sub [|1..8 |].asRarr 3 3
+        let resultInt = ResizeArray.sub 3 3 [|1..8 |].asRarr
         if resultInt <!> [|4;5;6 |].asRarr then Assert.Fail()
 
+
+    testCase "ResizeArray.Sub3" <| fun _ -> 
         // string array
-        let resultStr = ResizeArray.sub [|"Lists"; "are";  "commonly" ; "list"  |].asRarr 1 2
+        let resultStr = ResizeArray.sub 1 2 [|"Lists"; "are";  "commonly" ; "list"  |].asRarr
         if resultStr <!> [|"are";  "commonly"  |].asRarr then Assert.Fail()
 
+    testCase "ResizeArray.Sub4" <| fun _ -> 
         // empty array
-        let resultEpt = ResizeArray.sub [|  |].asRarr 0 0
+        let resultEpt = ResizeArray.sub 0 0 [|  |].asRarr
         if resultEpt <!> [| |].asRarr then Assert.Fail()
 
+    testCase "ResizeArray.Sub5" <| fun _ -> 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.sub nullArr 1 1 |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.sub 1 1  nullArr|> ignore)
 
+    testCase "ResizeArray.Sub6" <| fun _ -> 
         // bounds
-        CheckThrowsArgumentException (fun () -> ResizeArray.sub resultInt -1 2 |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.sub resultInt 1 -2 |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.sub resultInt 1 20 |> ignore)
+        let resultInt = ResizeArray.sub 3 3 [|1..8 |].asRarr
+        throwsRange (fun () -> ResizeArray.sub  -1 2 resultInt |> ignore)
+    
+    testCase "ResizeArray.Sub7" <| fun _ -> 
+        let resultInt = ResizeArray.sub 3 3 [|1..8 |].asRarr
+        throwsRange (fun () -> ResizeArray.sub  1 -2 resultInt |> ignore)
+    
+    testCase "ResizeArray.Sub8" <| fun _ -> 
+        let resultInt = ResizeArray.sub 3 3 [|1..8 |].asRarr
+        throwsRange (fun () -> ResizeArray.sub  1 20 resultInt |> ignore)
 
         ()
 
@@ -834,57 +846,68 @@ module Module2 =
         if resultDecimal <> 38.03M then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:double[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.sum  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<float>
+        throwsNull (fun () -> ResizeArray.sum  nullArr  |> ignore)
         ()
 
-    
-    testCase "ResizeArray.SumBy" <| fun _ -> 
+    testCase "ResizeArray.SumBy 1" <| fun _ -> 
+        // float32 array
+        let floatArray: string ResizeArray = [| "1.2"; "3.5"; "6.7"  |].asRarr
+        let resultFloat = ResizeArray.sumBy float32 floatArray
+        if abs (resultFloat - 11.4f) > 0.00001f then Assert.Fail($"{resultFloat}<>0.000001")
+
+    testCase "ResizeArray.SumBy 2" <| fun _ -> 
+        // float array
+        let floatArray: string ResizeArray = [| "1.2"; "3.5"; "6.7"  |].asRarr
+        let resultFloat = ResizeArray.sumBy float floatArray
+        if abs (resultFloat - 11.4) > 0.000001 then Assert.Fail($"{resultFloat}<>0.000001")   
+        
+    testCase "ResizeArray.SumBy 3" <| fun _ -> 
         // empty integer array
         let resultEptInt = ResizeArray.sumBy int ([| |].asRarr:int ResizeArray)
         if resultEptInt <> 0 then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 4" <| fun _ ->
         // empty float32 array
         let emptyFloatArray = ResizeArray.empty<System.Single>
         let resultEptFloat = ResizeArray.sumBy float32 emptyFloatArray
         if resultEptFloat <> 0.0f then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 5" <| fun _ ->
         // empty double array
         let emptyDoubleArray = ResizeArray.empty<System.Double>
         let resultDouEmp = ResizeArray.sumBy float emptyDoubleArray
         if resultDouEmp <> 0.0 then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 6" <| fun _ ->
         // empty decimal array
         let emptyDecimalArray = ResizeArray.empty<System.Decimal>
         let resultDecEmp = ResizeArray.sumBy decimal emptyDecimalArray
         if resultDecEmp <> 0M then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 7" <| fun _ ->
         // integer array
         let resultInt = ResizeArray.sumBy int [|1..10 |].asRarr
         if resultInt <> 55 then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 8" <| fun _ ->
         // float32 array
         let floatArray: string ResizeArray = [| "1.2";"3.5";"6.7"  |].asRarr
         let resultFloat = ResizeArray.sumBy float32 floatArray
-        if abs (resultFloat - 11.4f) > 0.00000001f then Assert.Fail()
-
+        if abs (resultFloat - 11.4f) > 0.0001f then Assert.Fail($"{resultFloat}<>0.0000001")
+    testCase "ResizeArray.SumBy 9" <| fun _ ->
         // double array
         let doubleArray: System.Double ResizeArray = [| 1.0;8.0  |].asRarr
         let resultDouble = ResizeArray.sumBy float doubleArray
         if resultDouble <> 9.0 then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 10" <| fun _ ->
         // decimal array
         let decimalArray: decimal ResizeArray = [| 0M;19M;19.03M  |].asRarr
         let resultDecimal = ResizeArray.sumBy decimal decimalArray
         if resultDecimal <> 38.03M then Assert.Fail()
-
+    testCase "ResizeArray.SumBy 11" <| fun _ ->
         // null array
-        // ResizeArray cant be null: let nullArr = null:double[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.sumBy float32  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<float>
+        throwsNull (fun () -> ResizeArray.sumBy float32  nullArr  |> ignore)
         ()
 
     
-    testCase "ResizeArray.Tl" <| fun _ -> 
+    testCase "ResizeArray.Tail" <| fun _ -> 
         // integer array
         let resultInt = ResizeArray.tail [|1..10 |].asRarr
         Assert.AreEqual([|2..10 |].asRarr, resultInt)
@@ -897,9 +920,9 @@ module Module2 =
         let resultStr2 = ResizeArray.tail [| "a"  |].asRarr
         Assert.AreEqual([|  |].asRarr, resultStr2)
 
-        CheckThrowsArgumentException(fun () -> ResizeArray.tail [| |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.tail [| |].asRarr |> ignore)
 
-        // ResizeArray cant be null: CheckThrowsArgumentNullException(fun () -> ResizeArray.tail null |> ignore)
+        throwsNull(fun () -> ResizeArray.tail null |> ignore)
         ()
 
     
@@ -917,8 +940,8 @@ module Module2 =
         if resultEpt <> [] then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.toList   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.toList   nullArr  |> ignore)
 
         ()
 
@@ -937,36 +960,41 @@ module Module2 =
         if resultEpt <!> [| |].asRarr  then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> nullArr  |> ResizeArray.toSeq   |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> nullArr  |> ResizeArray.toSeq   |> ignore)
 
         ()
 
     
     testCase "ResizeArray.Transpose" <| fun _ -> 
+        
+        let areSame(x,y)= Assert.True(ResizeArray.equals2 x y)
+
+        
+        
         // integer array
-        Assert.AreEqual([|[|1;4 |].asRarr; [|2;5 |].asRarr; [|3;6 |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{ [|1..3 |].asRarr; [|4..6 |].asRarr} ))
-        Assert.AreEqual([|[|1;4 |].asRarr; [|2;5 |].asRarr; [|3;6 |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{[|1..3 |].asRarr; [|4..6 |].asRarr} ))
-        Assert.AreEqual([|[|1 |].asRarr; [|2 |].asRarr; [|3 |].asRarr |].asRarr, ResizeArray.transpose [|[|1..3 |].asRarr |].asRarr)
-        Assert.AreEqual([|[|1..2 |].asRarr |].asRarr, ResizeArray.transpose [|[|1 |].asRarr; [|2 |].asRarr |].asRarr)
+        areSame ([|[|1;4 |].asRarr; [|2;5 |].asRarr; [|3;6 |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{ [|1..3 |].asRarr; [|4..6 |].asRarr} ))
+        areSame([|[|1;4 |].asRarr; [|2;5 |].asRarr; [|3;6 |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{ [|1..3 |].asRarr; [|4..6 |].asRarr} ))
+        areSame([|[|1 |].asRarr; [|2 |].asRarr; [|3 |].asRarr |].asRarr, ResizeArray.transpose [|[|1..3 |].asRarr |].asRarr)
+        areSame([|[|1..2 |].asRarr |].asRarr, ResizeArray.transpose [|[|1 |].asRarr; [|2 |].asRarr |].asRarr)
 
         // string array
-        Assert.AreEqual([|[|"a";"d" |].asRarr; [|"b";"e" |].asRarr; [|"c";"f" |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{[|"a";"b";"c" |].asRarr; [|"d";"e";"f" |].asRarr}))
+        areSame([|[|"a";"d" |].asRarr; [|"b";"e" |].asRarr; [|"c";"f" |].asRarr |].asRarr, ResizeArray.transpose (resizeArray{[|"a";"b";"c" |].asRarr; [|"d";"e";"f" |].asRarr}))
 
         // empty array
-        Assert.AreEqual([|  |].asRarr, ResizeArray.transpose [|  |].asRarr)
+        areSame([|  |].asRarr, ResizeArray.transpose [|  |].asRarr)
 
         // array of empty arrays - m x 0 array transposes to 0 x m (i.e. empty)
-        Assert.AreEqual([|  |].asRarr, ResizeArray.transpose [| [| |].asRarr  |].asRarr)
-        Assert.AreEqual([|  |].asRarr, ResizeArray.transpose [| [| |].asRarr; [| |].asRarr  |].asRarr)
+        areSame([|  |].asRarr, ResizeArray.transpose [| [| |].asRarr  |].asRarr)
+        areSame([|  |].asRarr, ResizeArray.transpose [| [| |].asRarr; [| |].asRarr  |].asRarr)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null: string[][]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> nullArr |> ResizeArray.transpose |> ignore)
+        let nullArr = null: ResizeArray<ResizeArray<string>>
+        throwsNull (fun () -> nullArr |> ResizeArray.transpose |> ignore)
 
         // jagged arrays
-        CheckThrowsArgumentException (fun () -> ResizeArray.transpose [| [|1; 2 |].asRarr; [|3 |].asRarr  |].asRarr |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.transpose [| [|1 |].asRarr; [|2; 3 |].asRarr  |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.transpose [| [|1; 2 |].asRarr; [|3 |].asRarr  |].asRarr |> ignore)
+        throwsRange (fun () -> ResizeArray.transpose [| [|1 |].asRarr; [|2; 3 |].asRarr  |].asRarr |> ignore)
 
     
     testCase "ResizeArray.Truncate" <| fun _ -> 
@@ -983,7 +1011,7 @@ module Module2 =
         Assert.AreEqual([|  |].asRarr, ResizeArray.truncate 1 [|  |].asRarr)
 
         // null array
-        // ResizeArray cant be null: CheckThrowsArgumentNullException(fun() -> ResizeArray.truncate 1 null |> ignore)
+        throwsNull(fun() -> ResizeArray.truncate 1 null |> ignore)
 
         // negative count
         Assert.AreEqual([|  |].asRarr, ResizeArray.truncate -1 [|1..5 |].asRarr)
@@ -1006,8 +1034,8 @@ module Module2 =
         if resultEpt <> None  then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.tryFind (fun (x:string) -> x.Length > 4)  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.tryFind (fun (x:string) -> x.Length > 4)  nullArr  |> ignore)
 
         ()
 
@@ -1030,8 +1058,8 @@ module Module2 =
         Assert.AreEqual(None, [| 1..20  |].asRarr |> ResizeArray.tryFindBack (fun _ -> false))
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.tryFindBack (fun _ -> failwith "error") nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.tryFindBack (fun _ -> failwith "error") nullArr |> ignore)
 
         ()
 
@@ -1050,8 +1078,8 @@ module Module2 =
         if resultEpt <> None  then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.tryFindIndex (fun (x:string) -> x.Length > 4)  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.tryFindIndex (fun (x:string) -> x.Length > 4)  nullArr  |> ignore)
 
         ()
 
@@ -1074,8 +1102,8 @@ module Module2 =
         Assert.AreEqual(None, [| 1..20  |].asRarr |> ResizeArray.tryFindIndexBack (fun _ -> false))
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.tryFindIndexBack (fun (x:string) -> x.Length > 4) nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.tryFindIndexBack (fun (x:string) -> x.Length > 4) nullArr |> ignore)
 
         ()
 
@@ -1131,19 +1159,21 @@ module Module2 =
         // null array
 
         ()
-
-    #if FABLE_COMPILER             
-    #else
+  
     testCase "ResizeArray.Windowed" <| fun _ -> 
         let testWindowed config = 
             try
                 config.InputArray
                 |> ResizeArray.windowed config.WindowSize
-                |> (fun actual -> Assert.True(config.ExpectedArray =+= actual))
+                |> (fun actual -> Assert.True(ResizeArray.equals2 config.ExpectedArray  actual))
             with
-            | _ when Option.isNone config.Exception -> Assert.Fail()
+            | e when Option.isNone config.Exception -> raise e
+            #if FABLE_COMPILER
+            | _ -> ()
+            #else
             | e when e.GetType() = (Option.get config.Exception) -> ()
             | _ -> Assert.Fail()
+            #endif
 
         {
           InputArray = [|1..10 |].asRarr
@@ -1181,20 +1211,22 @@ module Module2 =
           ExpectedArray = [|  |].asRarr
           Exception = None
         } |> testWindowed
-        //{
-        //  InputArray = null
-        //  WindowSize = 2
-        //  ExpectedArray = [|  |].asRarr
-        //  Exception = Some typeof<ArgumentNullException>
-        //} |> testWindowed
+        {
+         InputArray = null
+         WindowSize = 2
+         ExpectedArray = [|  |].asRarr
+         Exception = Some typeof<ArgumentNullException>
+        } |> testWindowed
         {
           InputArray = [|1..10 |].asRarr
           WindowSize = 0
           ExpectedArray =  [|  |].asRarr
-          Exception = Some typeof<ArgumentException>
+          Exception = Some typeof<ArgumentOutOfRangeException>
         } |> testWindowed
 
         // expectedArrays indexed by arraySize,windowSize
+        #if FABLE_COMPILER
+        #else
         let expectedArrays = Array2D.zeroCreate 6 6
         expectedArrays.[1,1] <- [| [|1 |].asRarr  |].asRarr
         expectedArrays.[2,1] <- [| [|1 |].asRarr; [|2 |].asRarr  |].asRarr
@@ -1215,20 +1247,20 @@ module Module2 =
         for arraySize = 0 to 5 do
             for windowSize = -1 to 5 do
                 if windowSize <= 0 then
-                    CheckThrowsArgumentException (fun () -> ResizeArray.windowed windowSize [|1..arraySize |].asRarr |> ignore)
+                    throwsRange (fun () -> ResizeArray.windowed windowSize [|1..arraySize |].asRarr |> ignore)
                 elif arraySize < windowSize then
                     Assert.True(([| |].asRarr) =+= ( ResizeArray.windowed windowSize [|1..arraySize |].asRarr))
                 else
                     Assert.True(( expectedArrays.[arraySize, windowSize]) =+= (ResizeArray.windowed windowSize [|1..arraySize |].asRarr))
-
+        #endif
         ()
-    #endif
+   
 
     
     testCase "ResizeArray.Zero_Create" <| fun _ -> 
         (*
         // Check for bogus input
-        CheckThrowsArgumentException(fun () -> ResizeArray.zeroCreate -1 |> ignore)
+        throwsRange(fun () -> ResizeArray.zeroCreate -1 |> ignore)
 
         // integer array
         let resultInt =  ResizeArray.zeroCreate 8
@@ -1248,7 +1280,7 @@ module Module2 =
     
     testCase "ResizeArray.BadCreateArguments" <| fun _ -> 
         // negative number
-        CheckThrowsArgumentException (fun () -> ResizeArray.create -1 0 |> ignore)
+        throwsRange (fun () -> ResizeArray.create -1 0 |> ignore)
 
     
     testCase "ResizeArray.Zip" <| fun _ -> 
@@ -1265,11 +1297,11 @@ module Module2 =
         if resultEpt <!> [| |].asRarr  then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.zip nullArr   nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.zip nullArr   nullArr  |> ignore)
 
         // len1 <!> len2
-        CheckThrowsArgumentException(fun () -> ResizeArray.zip [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.zip [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
 
         ()
 
@@ -1289,13 +1321,13 @@ module Module2 =
         if resultEpt <!> [| |].asRarr  then Assert.Fail()
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.zip3 nullArr  nullArr  nullArr  |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.zip3 nullArr  nullArr  nullArr  |> ignore)
 
         // len1 <> len2
-        CheckThrowsArgumentException(fun () -> ResizeArray.zip3 [|1..10 |].asRarr [|2..20 |].asRarr [|1..10 |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.zip3 [|1..10 |].asRarr [|2..20 |].asRarr [|1..10 |].asRarr |> ignore)
         // len1 <> len3
-        CheckThrowsArgumentException(fun () -> ResizeArray.zip3 [|1..10 |].asRarr [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
+        throwsRange(fun () -> ResizeArray.zip3 [|1..10 |].asRarr [|1..10 |].asRarr [|2..20 |].asRarr |> ignore)
 
         ()
 
@@ -1310,19 +1342,19 @@ module Module2 =
         Assert.AreEqual("commonly", resultStr)
 
         // empty array
-        CheckThrowsIndexOutRangException(fun () -> ResizeArray.item 0 ([|  |].asRarr : decimal ResizeArray) |> ignore)
+        throwsRange(fun () -> ResizeArray.item 0 ([|  |].asRarr : decimal ResizeArray) |> ignore)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsNullRefException (fun () -> ResizeArray.item 0 nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.item 0 nullArr |> ignore)
 
         // Negative index
         for i = -1 downto -10 do
-           CheckThrowsIndexOutRangException (fun () -> ResizeArray.item i [|1..8 |].asRarr |> ignore)
+            throwsRange (fun () -> ResizeArray.item i [|1..8 |].asRarr |> ignore)
 
         // Out of range
         for i = 11 to 20 do
-           CheckThrowsIndexOutRangException (fun () -> ResizeArray.item i [|1..8 |].asRarr |> ignore)
+           throwsRange (fun () -> ResizeArray.item i [|1..8 |].asRarr |> ignore)
 
     
     testCase "ResizeArray.tryItem" <| fun _ -> 
@@ -1342,8 +1374,8 @@ module Module2 =
         Assert.AreEqual(None, resultEmpty)
 
         // null array
-        // ResizeArray cant be null: let nullArr = null:string[]
-        // ResizeArray cant be null: CheckThrowsArgumentNullException (fun () -> ResizeArray.tryItem 0 nullArr |> ignore)
+        let nullArr = null:ResizeArray<string>
+        throwsNull (fun () -> ResizeArray.tryItem 0 nullArr |> ignore)
 
         // Negative index
         let resultNegativeIndex = ResizeArray.tryItem -1 [| 3;1;6;2  |].asRarr
@@ -1368,9 +1400,9 @@ module Module2 =
         Assert.AreEqual([|"1"; "2"; "3"; "4"|].asRarr , (ResizeArray.removeAt 4 [|"1"; "2"; "3"; "4"; "5"|].asRarr ))
 
         // empty list & out of bounds
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeAt 0 [||].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeAt -1 [|1|].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeAt 2 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeAt 0 [||].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeAt -1 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeAt 2 [|1|].asRarr  |> ignore)
 
     
     testCase "ResizeArray.RemoveManyAt" <| fun _ -> 
@@ -1385,9 +1417,9 @@ module Module2 =
         Assert.AreEqual([|"1"; "2"; "3"|].asRarr , (ResizeArray.removeManyAt 3 2 [|"1"; "2"; "3"; "4"; "5"|].asRarr ))
 
         // empty list & out of bounds
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeManyAt 0 2 [||].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeManyAt -1 2 [|1|].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.removeManyAt 2 2 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeManyAt 0 2 [||].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeManyAt -1 2 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.removeManyAt 2 2 [|1|].asRarr  |> ignore)
 
     
     testCase "ResizeArray.UpdateAt" <| fun _ -> 
@@ -1402,9 +1434,9 @@ module Module2 =
         Assert.AreEqual([|"1"; "2"; "3"; "4"; "0"|].asRarr , (ResizeArray.updateAt 4 "0" [|"1"; "2"; "3"; "4"; "5"|].asRarr ))
 
         // empty list & out of bounds
-        CheckThrowsArgumentException (fun () -> ResizeArray.updateAt 0 0 [||].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.updateAt -1 0 [|1|].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.updateAt 2 0 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.updateAt 0 0 [||].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.updateAt -1 0 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.updateAt 2 0 [|1|].asRarr  |> ignore)
 
     
     testCase "ResizeArray.InsertAt" <| fun _ -> 
@@ -1419,9 +1451,9 @@ module Module2 =
         Assert.AreEqual([|"1"; "2"; "3"; "4"; "0"; "5"|].asRarr , (ResizeArray.insertAt 4 "0" [|"1"; "2"; "3"; "4"; "5"|].asRarr ))
 
         // empty list & out of bounds
-        Assert.AreEqual([0], ResizeArray.insertAt 0 0 [||].asRarr )
-        CheckThrowsArgumentException (fun () -> ResizeArray.insertAt -1 0 [|1|].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.insertAt 2 0 [|1|].asRarr  |> ignore)
+        Assert.AreEqual([|0|].asRarr, ResizeArray.insertAt 0 0 [||].asRarr )
+        throwsRange (fun () -> ResizeArray.insertAt -1 0 [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.insertAt 2 0 [|1|].asRarr  |> ignore)
 
     
     testCase "ResizeArray.InsertManyAt" <| fun _ -> 
@@ -1436,9 +1468,9 @@ module Module2 =
         Assert.AreEqual([|"1"; "2"; "3"; "4"; "0"; "0"; "5"|].asRarr , (ResizeArray.insertManyAt 4 [|"0"; "0"|] [|"1"; "2"; "3"; "4"; "5"|].asRarr ))
 
         // empty list & out of bounds
-        Assert.AreEqual([0; 0], ResizeArray.insertManyAt 0 [|0; 0|] [||].asRarr )
-        CheckThrowsArgumentException (fun () -> ResizeArray.insertManyAt -1 [|0; 0|] [|1|].asRarr  |> ignore)
-        CheckThrowsArgumentException (fun () -> ResizeArray.insertManyAt  2 [|0; 0|] [|1|].asRarr  |> ignore)
+        Assert.AreEqual( [|0; 0|].asRarr, ResizeArray.insertManyAt 0 [|0; 0|] [||].asRarr )
+        throwsRange (fun () -> ResizeArray.insertManyAt -1 [|0; 0|] [|1|].asRarr  |> ignore)
+        throwsRange (fun () -> ResizeArray.insertManyAt  2 [|0; 0|] [|1|].asRarr  |> ignore)
 
 
     //--------------------------------------------------------------------------------------------------------------------
@@ -1462,28 +1494,28 @@ module Module2 =
     testCase "ResizeArray.rotateDownTill" <| fun _ -> 
         let xs = [|0; 7; 2; 3; 7; 5|].asRarr
         Assert.AreEqual(xs |> ResizeArray.rotateDownTill(fun i -> i = 7)     , [|7; 2; 3; 7; 5; 0 |].asRarr)
-        CheckThrowsArgumentException (fun () -> xs |> ResizeArray.rotateDownTill (fun i -> i = 99) |> ignore  )
+        throwsRange (fun () -> xs |> ResizeArray.rotateDownTill (fun i -> i = 99) |> ignore  )
 
 
     
     testCase "ResizeArray.rotateDownTillLast" <| fun _ -> 
         let xs = [|0; 7; 2; 3; 7; 5|].asRarr
         Assert.AreEqual(xs |> ResizeArray.rotateDownTillLast(fun i -> i = 7) , [|2; 3; 7; 5; 0; 7 |].asRarr)
-        CheckThrowsArgumentException (fun () -> xs |> ResizeArray.rotateDownTillLast (fun i -> i = 99) |> ignore  )
+        throwsRange (fun () -> xs |> ResizeArray.rotateDownTillLast (fun i -> i = 99) |> ignore  )
 
 
     
     testCase "ResizeArray.rotateUpTill" <| fun _ -> 
         let xs = [|0; 7; 2; 3; 7; 5|].asRarr
         Assert.AreEqual(xs |> ResizeArray.rotateUpTill(fun i -> i = 7)       , [|7; 5; 0; 7; 2; 3 |].asRarr)
-        CheckThrowsArgumentException (fun () -> xs |> ResizeArray.rotateUpTill (fun i -> i = 99) |> ignore  )
+        throwsRange (fun () -> xs |> ResizeArray.rotateUpTill (fun i -> i = 99) |> ignore  )
 
 
     
     testCase "ResizeArray.rotateUpTillLast" <| fun _ -> 
         let xs = [|0; 7; 2; 3; 7; 5|].asRarr
         Assert.AreEqual(xs |> ResizeArray.rotateUpTillLast(fun i -> i = 7)   , [|5; 0; 7; 2; 3; 7 |].asRarr)
-        CheckThrowsArgumentException (fun () -> xs |> ResizeArray.rotateUpTillLast (fun i -> i = 99) |> ignore  )
+        throwsRange (fun () -> xs |> ResizeArray.rotateUpTillLast (fun i -> i = 99) |> ignore  )
 
 
 

@@ -16,11 +16,14 @@
     <Title>ResizeArray</Title>
     <Product>ResizeArray</Product>
     <PackageId>ResizeArray</PackageId>
-    <Version>0.15.0-a</Version>
-    <AssemblyVersion>0.15.0</AssemblyVersion>
-    <FileVersion>0.15.0</FileVersion>
+    <Version>0.16.0</Version>
+    <AssemblyVersion>0.16.0</AssemblyVersion>
+    <FileVersion>0.16.0</FileVersion>
     <PackageReleaseNotes>
-      - implementation extracted from https://github.com/goswinr/FsEx 0.14.1
+      - add null checks
+      - add 'partitionBy' functions
+      - add equality checks for nested ResizeArrays
+      - flip arg order of 'sub' function
 	  </PackageReleaseNotes>
     <Authors>GoswinR</Authors>
     <Copyright>Goswin Rothenthal 2021</Copyright>
@@ -32,7 +35,7 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>    
+    <!-- <SymbolPackageFormat>snupkg</SymbolPackageFormat>     -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -45,7 +48,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.5.2" />    <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
+    <PackageReference Update="FSharp.Core" Version="5.0.2" />    <!-- otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
   </ItemGroup>
   

@@ -82,6 +82,11 @@ npm test
     
     
 ### Changelog
+`0.16.0`
+- add null checks
+- add 'partitionBy' functions
+- add equality checks for nested ResizeArrays
+- flip arg order of 'sub' function
 
 `0.15.0`
 - implementation ported from `Rarr` type in https://github.com/goswinr/FsEx/blob/main/Src/RarrModule.fs 
