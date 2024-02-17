@@ -2,7 +2,7 @@
 
 open System
 
-module ComputationalExpressions =
+module ComputationalExpression =
 
     //TODO: optimize with 
     // [<InlineIfLambda>] as in https://gist.github.com/Tarmil/afcf5f50e45e90200eb7b01615b0ffc0
@@ -56,13 +56,13 @@ module ComputationalExpressions =
                 finally compensation  r
 
         member inline this.Using(disposable: #IDisposable, body: #IDisposable -> ResizeArray<'T> -> unit) =            
-            this.TryFinally( body disposable ,  fun (r: ResizeArray<'T>)  ->  
+            this.TryFinally( body disposable ,  fun (_: ResizeArray<'T>)  ->  
                 if not <| Object.ReferenceEquals(disposable,null) then // might be disposed already   
                     disposable.Dispose() 
             )                      
 
 [<AutoOpen>]
-module AutoOpenComputationalExpressions  =     
+module AutoOpenComputationalExpression  =     
 
     /// Computational Expression:  use 'yield' to add elements to a ResizeArray (a Collections.Generic.List).
-    let resizeArray<'T> = new ComputationalExpressions.ResizeArrayBuilder<'T> () 
+    let resizeArray<'T> = new ComputationalExpression.ResizeArrayBuilder<'T> () 

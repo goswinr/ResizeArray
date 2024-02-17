@@ -55,8 +55,10 @@ module AutoOpenExtensions =
 
         /// Gets the index of the last item in the ResizeArray.
         /// Equal to this.Count - 1
+        /// Returns -1 for empty ResizeArray.
         member inline xs.LastIndex =
-            if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.LastIndex: Failed to get LastIndex of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
+            // don't fail so that a loop for i=0 to xs.LastIndex will work for empty ResizeArray 
+            //if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.LastIndex: Failed to get LastIndex of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
             xs.Count - 1
 
         /// Get (or set) the last item in the ResizeArray.

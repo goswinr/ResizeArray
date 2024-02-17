@@ -2,7 +2,7 @@
 
 # ResizeArray
 
-![code size](https://img.shields.io/github/languages/code-size/goswinr/ResizeArray.svg) 
+![code size](https://img.shields.io/github/languages/code-size/goswinr/ResizeArray.svg)
 [![license](https://img.shields.io/github/license/goswinr/ResizeArray)](LICENSE)
 
 ResizeArray is an F# extension and module library for `ResizeArray<'T>` ( = `Collection.Generic.List<'T>`)
@@ -12,9 +12,9 @@ It also works with [Fable](https://fable.io/).
 
 ![Logo](https://raw.githubusercontent.com/goswinr/ResizeArray/main/Doc/logo.png)
 
-### It Includes: 
+### It Includes:
 
-- A `ResizeArray` module that has a corseponding functions for  **all**  functions in the  [`Array` module from `FSharp.Core`](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-arraymodule.html). Including those for parallel computing.
+- A `ResizeArray` module that has a corresponding functions for  **all**  functions in the  [`Array` module from `FSharp.Core`](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-arraymodule.html). Including those for parallel computing.
 - A  Computational Expressions `resizeArray` that can be used like existing ones for `seq`.
 - Support for F# slicing operator and indexing from the end. e.g: `items.[ 1 .. ^1]`
 - Extension members on `ResizeArray` like `.Get` `.Set` `.First` `.Last` `.SecondLast` and more.
@@ -36,16 +36,16 @@ this namespace contains:
 then you can do:
 
 ```fsharp
-let evenNumbers = 
+let evenNumbers =
     resizeArray {  // a Computational Expressions like seq
-        for i = 0 t 99 do 
-            if i % 2 = 0 then 
+        for i = 0 t 99 do
+            if i % 2 = 0 then
                 i
     }
-    
+
 let oddNumbers = evenNumbers |> ResizeArray.map (fun x -> x + 1) // ResizeArray module
 
-let hundred = oddNumbers.Last // Extension member to access the last item in list 
+let hundred = oddNumbers.Last // Extension member to access the last item in list
 
 ```
 
@@ -67,20 +67,23 @@ go to the tests folder
 cd Tests
 ```
 
-For testing with .NET using Expecto run 
+For testing with .NET using Expecto run
 
 ```bash
 dotnet run
 ```
 
-for testing with Fable.Mocha run 
+for testing with Fable.Mocha run
 
 ```bash
 npm test
 ```
-    
-    
+
+
 ### Changelog
+`0.17.0`
+- don't fail on LastIndex when empty
+
 `0.16.0`
 - add null checks
 - add 'partitionBy' functions
@@ -88,4 +91,4 @@ npm test
 - flip arg order of 'sub' function
 
 `0.15.0`
-- implementation ported from `Rarr` type in https://github.com/goswinr/FsEx/blob/main/Src/RarrModule.fs 
+- implementation ported from `Rarr` type in https://github.com/goswinr/FsEx/blob/main/Src/RarrModule.fs

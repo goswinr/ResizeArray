@@ -1,10 +1,10 @@
 namespace Tests
-module Extensions = 
+module Extensions =
 
     open ResizeArray
 
 
-    #if FABLE_COMPILER 
+    #if FABLE_COMPILER
     open Fable.Mocha
     #else
     open Expecto
@@ -12,12 +12,12 @@ module Extensions =
 
     let tests =
       testList "extensions Tests" [
-        
-        test "Intro: 9=9" {Expect.equal 9 9 "Intro"}  
-    
-        let a = resizeArray{ for i in 0 .. 9 ->  float i }               
+
+        test "Intro: 9=9" {Expect.equal 9 9 "Intro"}
+
+        let a = resizeArray{ for i in 0 .. 9 ->  float i }
         let b = ResizeArray.init 10 (fun i -> float i)
-    
+
         test "Get" {
             Expect.equal (a.Get 2) 2.0 "Get 2"
             Expect.equal (a.Get 2) a[2] "Get 2 Item"
@@ -34,7 +34,7 @@ module Extensions =
             Expect.throws (fun () -> a.Set 10 0.0 |> ignore ) "Set 10"
             Expect.throws (fun () -> a.Set -1 0.0 |> ignore ) "Set -1"
         }
-        
+
         test "IsEqualTo" {
             Expect.isTrue (a.IsEqualTo b) "IsEqualTo"
             Expect.isTrue (a.IsEqualTo a) "IsEqualTo self"
@@ -43,11 +43,11 @@ module Extensions =
             b.Set 2 9.9
             Expect.isFalse (a.IsEqualTo b) "index 2 was set to 9.9"
 
-            let bb = resizeArray {a.Clone()}            
+            let bb = resizeArray {a.Clone()}
             let aa = resizeArray {a.Clone()}
             Expect.isTrue (ResizeArray.equals2 aa bb) "equals 2"
 
-            let bb = resizeArray {a.Clone()}            
+            let bb = resizeArray {a.Clone()}
             let aa = resizeArray {bb.First}
             Expect.isTrue (ResizeArray.equals2 aa bb) "equals 2"
 
@@ -60,19 +60,19 @@ module Extensions =
             Expect.isFalse (ResizeArray.equals c d) "equals doesn't check inner array .NET"
             #endif
 
-        }   
+        }
 
         // -- xs.LastIndex --
-        testCase "LastIndex raises exception on empty ResizeArray" <| fun _ ->
+        testCase "LastIndex doesn't raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
-            let testCode = fun () -> xs.LastIndex |> ignore
-            Expect.throws testCode "Expected an ArgumentOutOfRangeException"
+            let r =  xs.LastIndex
+            Expect.equal -1 r "Expected -1"
 
         testCase "LastIndex returns Count - 1 on non-empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
             let lastIndex = xs.LastIndex
             Expect.equal lastIndex (xs.Count - 1) "Expected LastIndex to be equal to Count - 1"
-        
+
         //---- xs.Last ----
         testCase "Last getter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
@@ -93,7 +93,7 @@ module Extensions =
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
             xs.Last <- 6
             Expect.equal xs.Last 6 "Expected Last to be changed to the new value"
-        
+
         //---- xs.SecondLast ----
         testCase "SecondLast getter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
@@ -156,7 +156,7 @@ module Extensions =
             let xs = ResizeArray<int>([1; 2; 3; 4; 5])
             xs.First <- 6
             Expect.equal xs.First 6 "Expected First to be changed to the new value"
-        
+
         //---- xs.FirstAndOnly ----
         testCase "FirstAndOnly getter raises exception on empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>()
@@ -172,7 +172,7 @@ module Extensions =
             let xs = ResizeArray<int>([1])
             let firstAndOnlyItem = xs.FirstAndOnly
             Expect.equal firstAndOnlyItem 1 "Expected FirstAndOnly to be equal to the only item in the ResizeArray"
-        
+
         //---- xs.Second ----
         testCase "Second getter raises exception on ResizeArray with less than 2 items" <| fun _ ->
             let xs = ResizeArray<int>([1])
@@ -223,7 +223,7 @@ module Extensions =
         testCase "IsNotEmpty returns true for non-empty ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1])
             Expect.isTrue xs.IsNotEmpty "Expected IsNotEmpty to be true for a non-empty ResizeArray"
-        
+
         //---- xs.InsertAtStart ----
         testCase "InsertAtStart inserts item at the beginning of the ResizeArray" <| fun _ ->
             let xs = ResizeArray<int>([1; 2; 3])
@@ -287,4 +287,3 @@ module Extensions =
             Expect.isTrue (xs.IsEqualTo (ResizeArray<int>([1; 6; 7; 8; 5]))) "Expected SetSlice to set a slice in the ResizeArray"
 
     ]
-  
