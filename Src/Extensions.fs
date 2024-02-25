@@ -28,14 +28,14 @@ module AutoOpenExtensions =
             xs.[index] <- value
 
         /// Shallow Structural equality comparison.
-        /// Compares each element in both lists for equality. 
+        /// Compares each element in both lists for equality.
         /// However nested ResizeArrays inside a ResizeArray are only compared for referential equality in .NET.
-        /// When used in Fable (JavaScript) the nested ResizeArrays are compared for structural equality 
-        /// as per the Fable implementation of Javascript Arrays. 
+        /// When used in Fable (JavaScript) the nested ResizeArrays are compared for structural equality
+        /// as per the Fable implementation of Javascript Arrays.
         /// (Like the default behavior of Collections.Generic.List)
         /// Raises ArgumentNullException if either list is null.
         member this.IsEqualTo(other: ResizeArray<'T>) =
-            if isNullSeq other then 
+            if isNullSeq other then
                 ArgumentNullException.Raise "this.IsEqualTo other"
             elif Object.ReferenceEquals(this, other) then
                 true
@@ -57,7 +57,7 @@ module AutoOpenExtensions =
         /// Equal to this.Count - 1
         /// Returns -1 for empty ResizeArray.
         member inline xs.LastIndex =
-            // don't fail so that a loop for i=0 to xs.LastIndex will work for empty ResizeArray 
+            // don't fail so that a loop for i=0 to xs.LastIndex will work for empty ResizeArray
             //if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.LastIndex: Failed to get LastIndex of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
             xs.Count - 1
 
@@ -204,7 +204,7 @@ module AutoOpenExtensions =
 
         /// Creates a shallow copy of the list
         /// (for a ResizeArray of structs this is like a deep copy)
-        member inline xs.Clone() = 
+        member inline xs.Clone() =
             xs.GetRange(0, xs.Count) // fastest way to create a shallow copy
 
         /// <summary>Get the index for the element offset elements away from the end of the collection.
@@ -288,6 +288,19 @@ module AutoOpenExtensions =
             for i = stIdx to enIdx do
                 xs.[i] <- newValues.[i - stIdx]
 
+        /// Raises an Exception if the ResizeArray is empty
+        /// (Useful for chaining)
+        /// Returns the input ResizeArray
+        member inline xs.FailIfEmpty (errorMessage: string) =
+            if xs.Count = 0 then raise <| Exception("ResizeArray.FailIfEmpty: " + errorMessage)
+            xs
+
+        /// Raises an Exception if the ResizeArray has less then count items.
+        /// (Useful for chaining)
+        /// Returns the input ResizeArray
+        member inline xs.FailIfLessThan(count, errorMessage: string) =
+            if xs.Count < count then raise <| Exception($"ResizeArray.FailIfLessThan {count}: {errorMessage}")
+            xs
 
         /// A property like the ToString() method,
         /// But with richer formatting

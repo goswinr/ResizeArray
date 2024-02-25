@@ -83,6 +83,10 @@ npm test
 
 ### Changelog
 
+`0.18.0`
+- add mapToArray
+- add failIfEmpty
+
 `0.17.0`
 - don't fail on LastIndex when empty
 

@@ -11,11 +11,11 @@ open UtilResizeArray
 /// A ResizeArray is a System.Collections.Generic.List<'T>.
 /// This module has all functions from the FSharp.Core.Array module implemented for ResizeArray. And more.
 module ResizeArray =
-    
-    
-    
+
+
+
     let inline private isNullSeq (x:IEnumerable<'T>) = Object.ReferenceEquals(null,x)
-    
+
     let inline private nullExn msg = ArgumentNullException.Raise msg
 
 
@@ -24,7 +24,7 @@ module ResizeArray =
     /// <param name="index">The input index.</param>
     /// <returns>The value of the ResizeArray at the given index.</returns>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
-    let inline get (resizeArray: ResizeArray<'T>) index = 
+    let inline get (resizeArray: ResizeArray<'T>) index =
         if isNullSeq resizeArray then nullExn "get"
         resizeArray.Get index
 
@@ -34,7 +34,7 @@ module ResizeArray =
     /// <param name="index">The input index.</param>
     /// <param name="value">The input value.</param>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
-    let inline set (resizeArray: ResizeArray<'T>) index value = 
+    let inline set (resizeArray: ResizeArray<'T>) index value =
         if isNullSeq resizeArray then nullExn "set"
         resizeArray.Set index value
 
@@ -42,6 +42,21 @@ module ResizeArray =
     //---------------------------------------------------
     // functions added only in ResizeArray: (not in FSharp.Core Array module)
     //----------------------------------------------------
+
+    /// Raises an Exception if the ResizeArray is empty.
+    /// (Useful for chaining)
+    /// Returns the input ResizeArray
+    let inline failIfEmpty (errorMessage: string) (resizeArray: ResizeArray<'T>) =
+        if resizeArray.Count = 0 then raise <| Exception("ResizeArray.FailIfEmpty: " + errorMessage)
+        resizeArray
+
+    /// Raises an Exception if the ResizeArray has less then count items.
+    /// (Useful for chaining)
+    /// Returns the input ResizeArray
+    let failIfLessThan (count) (errorMessage: string) (resizeArray: ResizeArray<'T>) =
+        if resizeArray.Count < count then raise <| Exception($"ResizeArray.FailIfLessThan {count}: {errorMessage}")
+        resizeArray
+
 
     /// Gets an item in the ResizeArray by index.
     /// Allows for negative index too ( -1 is last item,  like Python)
@@ -139,18 +154,20 @@ module ResizeArray =
     /// Allows for negative indices too. ( -1 is last item, like Python)
     /// The resulting ResizeArray includes the end index.
     /// Raises an ArgumentOutOfRangeException if indices are out of range.
-    /// If you don't want an exception to be raised for index overflow use ResizeArray.trim.
-    /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
-    let inline slice startIdx endIdx (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+    /// If you don't want an exception to be raised for index overflow or overlap use ResizeArray.trim.
+    /// (A negative index can also be done with '^' prefix. E.g. ^0 for the last item, when F# Language preview features are enabled.)
+    let slice startIdx endIdx (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
         if isNullSeq resizeArray then nullExn "slice"
         resizeArray.GetSlice(startIdx, endIdx)
 
 
     /// Trim items from start and end.
     /// If the sum of fromStartCount and fromEndCount is bigger than resizeArray.Count it returns an empty ResizeArray.
-    /// If you want an exception to be raised for index overflow use ResizeArray.slice with negative end index.
-    let inline trim fromStartCount fromEndCount (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+    /// If you want an exception to be raised for index overlap (total trimming is bigger than count) use ResizeArray.slice with negative end index.
+    let trim fromStartCount fromEndCount (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
         if isNullSeq resizeArray then nullExn "trim"
+        if fromStartCount < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.trim: fromStartCount can't be negative: %d" fromStartCount
+        if fromEndCount < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.trim: fromEndCount can't be negative: %d" fromEndCount
         let c = resizeArray.Count
         if fromStartCount + fromEndCount >= c then
             ResizeArray<'T>(0)
@@ -167,7 +184,7 @@ module ResizeArray =
     /// The resulting seq is one element shorter than the input ResizeArray.
     let windowed2 (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "windowed2"
-        if resizeArray.Count <= 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2 input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2 input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 resizeArray.[i], resizeArray.[i + 1]
@@ -177,7 +194,7 @@ module ResizeArray =
     /// The resulting seq has the same element count as the input ResizeArray.
     let thisNext (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "thisNext"
-        if resizeArray.Count <= 2 then ArgumentOutOfRangeException.Raise "ResizeArray.thisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.thisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 resizeArray.[i], resizeArray.[i + 1]
@@ -188,7 +205,7 @@ module ResizeArray =
     /// The resulting seq has the same element count as the input ResizeArray.
     let prevThis (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "prevThis"
-        if resizeArray.Count <= 2 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThis input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThis input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             resizeArray.[resizeArray.Count - 1], resizeArray.[0]
             for i = 0 to resizeArray.Count - 2 do
@@ -200,7 +217,7 @@ module ResizeArray =
     /// The resulting seq is two elements shorter than the input ResizeArray.
     let windowed3 (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "windowed3"
-        if resizeArray.Count <= 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3 input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3 input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 3 do
                 resizeArray.[i], resizeArray.[i + 1], resizeArray.[i + 2]
@@ -210,7 +227,7 @@ module ResizeArray =
     /// The resulting seq has the same element count as the input ResizeArray.
     let prevThisNext (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "prevThisNext"
-        if resizeArray.Count <= 3 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             resizeArray.[resizeArray.Count - 1], resizeArray.[0], resizeArray.[1]
             for i = 0 to resizeArray.Count - 3 do
@@ -223,7 +240,7 @@ module ResizeArray =
     /// The resulting seq is one element shorter than the input ResizeArray.
     let windowed2i (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "windowed2i"
-        if resizeArray.Count <= 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2i input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2i input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 i, resizeArray.[i], resizeArray.[i + 1]
@@ -233,7 +250,7 @@ module ResizeArray =
     /// The resulting seq has the same element count as the input ResizeArray.
     let iThisNext (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "iThisNext"
-        if resizeArray.Count <= 2 then ArgumentOutOfRangeException.Raise "ResizeArray.iThisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.iThisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 i, resizeArray.[i], resizeArray.[i + 1]
@@ -245,7 +262,7 @@ module ResizeArray =
     /// The resulting seq is two elements shorter than the input ResizeArray.
     let windowed3i (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "windowed3i"
-        if resizeArray.Count <= 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3i input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3i input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             for i = 0 to resizeArray.Count - 3 do
                 i + 1, resizeArray.[i], resizeArray.[i + 1], resizeArray.[i + 2]
@@ -255,7 +272,7 @@ module ResizeArray =
     /// The resulting seq has the same element count as the input ResizeArray.
     let iPrevThisNext (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "iPrevThisNext"
-        if resizeArray.Count <= 3 then ArgumentOutOfRangeException.Raise "ResizeArray.iPrevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.iPrevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
         seq {
             0, resizeArray.[resizeArray.Count - 1], resizeArray.[0], resizeArray.[1]
 
@@ -268,7 +285,7 @@ module ResizeArray =
     /// <summary>Returns a ResizeArray that contains one item only.</summary>
     /// <param name="value">The input item.</param>
     /// <returns>The result ResizeArray of one item.</returns>
-    let inline singleton value =        
+    let inline singleton value =
         // allow null values so that ResizeArray.singleton [] is valid
         // allow null values so that ResizeArray.singleton None is valid
         let res = ResizeArray(1)
@@ -410,22 +427,22 @@ module ResizeArray =
             r
 
     /// Shallow Structural equality comparison in .NET.
-    /// Compares each element in both lists for equality. 
+    /// Compares each element in both lists for equality.
     /// However nested ResizeArrays inside a ResizeArray are only compared for referential equality.
     /// (Like the default behavior of Collections.Generic.List)
     /// Raises ArgumentNullException if either list is null.
-    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality 
+    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality
     /// see https://github.com/fable-compiler/Fable/issues/3718
     /// Use ResizeArray.equals2 or ResizeArray.equal3 for comparing nested ResizeArrays too.
-    let inline equals (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'T>) : bool = 
+    let inline equals (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray1 then nullExn "equals"
         resizeArray1.IsEqualTo(resizeArray2)
 
     /// Structural equality comparison of ResizeArrays nested in ResizeArrays in .NET.
-    /// Compares each element in each nested list for equality. 
+    /// Compares each element in each nested list for equality.
     /// So that two levels deep nested 'T are still compared for equality in .NET.
-    /// Raises ArgumentNullException if either list is null.      
-    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality 
+    /// Raises ArgumentNullException if either list is null.
+    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality
     /// see https://github.com/fable-compiler/Fable/issues/3718
     let equals2 (resizeArrays1: ResizeArray<ResizeArray<'T>>) (resizeArrays2: ResizeArray<ResizeArray<'T>>)=
         if isNullSeq resizeArrays1 then nullExn "equals2 first"
@@ -446,14 +463,14 @@ module ResizeArray =
             eq 0
 
     /// Structural equality comparison of ResizeArrays nested in ResizeArrays nested in ResizeArrays in .NET.
-    /// Compares each element in each twice nested list for equality. 
-    /// So that three levels deep nested 'T are still compared for equality.  
-    /// Raises ArgumentNullException if either list is null.      
-    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality 
-    /// see https://github.com/fable-compiler/Fable/issues/3718 
+    /// Compares each element in each twice nested list for equality.
+    /// So that three levels deep nested 'T are still compared for equality.
+    /// Raises ArgumentNullException if either list is null.
+    /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality
+    /// see https://github.com/fable-compiler/Fable/issues/3718
     let equals3 (resizeArrays1: ResizeArray<ResizeArray<ResizeArray<'T>>>) (resizeArrays2: ResizeArray<ResizeArray<ResizeArray<'T>>>) =
         if isNullSeq resizeArrays1 then nullExn "equals3 first"
-        if isNullSeq resizeArrays2 then nullExn "equals3 second"        
+        if isNullSeq resizeArrays2 then nullExn "equals3 second"
         if Object.ReferenceEquals (resizeArrays1, resizeArrays2) then
             true
         elif resizeArrays1.Count <> resizeArrays2.Count then
@@ -468,37 +485,37 @@ module ResizeArray =
                 else
                     true
             eq 0
-          
-   
+
+
     /// Returns true if the given ResizeArray has just one item.
     /// Same as  ResizeArray.hasOne
-    let inline isSingleton (resizeArray: ResizeArray<'T>) : bool = 
+    let inline isSingleton (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "isSingleton"
         resizeArray.Count = 1
 
     /// Returns true if the given ResizeArray has just one item.
     /// Same as  ResizeArray.isSingleton
-    let inline hasOne (resizeArray: ResizeArray<'T>) : bool = 
+    let inline hasOne (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "hasOne"
         resizeArray.Count = 1
 
     /// Returns true if the given ResizeArray is not empty.
-    let inline isNotEmpty (resizeArray: ResizeArray<'T>) : bool = 
+    let inline isNotEmpty (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "isNotEmpty"
         resizeArray.Count <> 0
 
     /// Returns true if the given ResizeArray has count items.
-    let inline hasItems count (resizeArray: ResizeArray<'T>) : bool = 
+    let inline hasItems count (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "hasItems"
         resizeArray.Count = count
 
     /// Returns true if the given ResizeArray has equal or more than count items.
-    let inline hasMinimumItems count (resizeArray: ResizeArray<'T>) : bool = 
+    let inline hasMinimumItems count (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "hasMinimumItems"
         resizeArray.Count >= count
 
     /// Returns true if the given ResizeArray has equal or less than count items.
-    let inline hasMaximumItems count (resizeArray: ResizeArray<'T>) : bool = 
+    let inline hasMaximumItems count (resizeArray: ResizeArray<'T>) : bool =
         if isNullSeq resizeArray then nullExn "hasMaximumItems"
         resizeArray.Count <= count
 
@@ -521,7 +538,7 @@ module ResizeArray =
         //TODO test keeping of order if equal !
 
         (*
-        let inline simple cmpF (resizeArray:ResizeArray<'T>) = 
+        let inline simple cmpF (resizeArray:ResizeArray<'T>) =
             if resizeArray.Count < 1 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.simple: Count must be at least one: %s"  resizeArray.ToNiceStringLong
             let mutable m = resizeArray.[0]
             for i=1 to resizeArray.Count-1 do
@@ -684,21 +701,21 @@ module ResizeArray =
         if isNullSeq resizeArray then nullExn "maxIndBy"
         resizeArray |> MinMax.indexByFun (>) projection
 
-    /// Returns the smallest two elements of the ResizeArray.
-    /// If they are equal then the  order is kept
-    let inline min2 resizeArray = 
+    /// Returns the smallest and the second smallest element of the ResizeArray.
+    /// If they are equal then the order is kept
+    let inline min2 resizeArray =
         if isNullSeq resizeArray then nullExn "min2"
         resizeArray |> MinMax.simple2 (<)
 
-    /// Returns the biggest two elements of the ResizeArray.
+    /// Returns the biggest and the second biggest element of the ResizeArray.
     /// If they are equal then the  order is kept
-    let inline max2 resizeArray = 
+    let inline max2 resizeArray =
         if isNullSeq resizeArray then nullExn "max2"
         resizeArray |> MinMax.simple2 (>)
 
     // TODO make consistent xml docstring on below functions:
 
-    /// Returns the smallest two elements of the ResizeArray.
+    /// Returns the smallest and the second smallest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min2By f resizeArray =
@@ -706,7 +723,7 @@ module ResizeArray =
         let i, ii = resizeArray |> MinMax.index2ByFun (<) f
         resizeArray.[i], resizeArray.[ii]
 
-    /// Returns the biggest two elements of the ResizeArray.
+    /// Returns the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max2By f resizeArray =
@@ -714,33 +731,36 @@ module ResizeArray =
         let i, ii = resizeArray |> MinMax.index2ByFun (>) f
         resizeArray.[i], resizeArray.[ii]
 
-    /// Returns the indices of the two smallest elements of the ResizeArray.
+    /// Returns the indices of the smallest and the second smallest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min2IndBy f resizeArray = 
+    let inline min2IndBy f resizeArray =
         if isNullSeq resizeArray then nullExn "min2IndBy"
         resizeArray |> MinMax.index2ByFun (<) f
 
-    /// Returns the indices of the two biggest elements of the ResizeArray.
+    /// Returns the indices of the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max2IndBy f resizeArray = 
+    let inline max2IndBy f resizeArray =
         if isNullSeq resizeArray then nullExn "max2IndBy"
         resizeArray |> MinMax.index2ByFun (>) f
 
     /// Returns the smallest three elements of the ResizeArray.
+    /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
     /// If they are equal then the order is kept
-    let inline min3 resizeArray = 
+    let inline min3 resizeArray =
         if isNullSeq resizeArray then nullExn "min3"
         resizeArray |> MinMax.simple3 (<)
 
     /// Returns the biggest three elements of the ResizeArray.
+    /// The first element is the biggest, the second is the second biggest and the third is the third biggest.
     /// If they are equal then the order is kept
-    let inline max3 resizeArray = 
+    let inline max3 resizeArray =
         if isNullSeq resizeArray then nullExn "max3"
         resizeArray |> MinMax.simple3 (>)
 
     /// Returns the smallest three elements of the ResizeArray.
+    /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min3By f resizeArray =
@@ -749,6 +769,7 @@ module ResizeArray =
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
     /// Returns the biggest three elements of the ResizeArray.
+    /// The first element is the biggest, the second is the second biggest and the third is the third biggest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max3By f resizeArray =
@@ -757,22 +778,24 @@ module ResizeArray =
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
     /// Returns the indices of the three smallest elements of the ResizeArray.
+    /// The first element is the index of the smallest, the second is the index of the second smallest and the third is the index of the third smallest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min3IndBy f resizeArray = 
+    let inline min3IndBy f resizeArray =
         if isNullSeq resizeArray then nullExn "min3IndBy"
         resizeArray |> MinMax.index3ByFun (<) f
 
     /// Returns the indices of the three biggest elements of the ResizeArray.
+    /// The first element is the index of the biggest, the second is the index of the second biggest and the third is the index of the third biggest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max3IndBy f resizeArray = 
+    let inline max3IndBy f resizeArray =
         if isNullSeq resizeArray then nullExn "max3IndBy"
         resizeArray |> MinMax.index3ByFun (>) f
 
     /// Return the length or count of the collection.
-    /// Same as  ResizeArray.length
-    let inline count (resizeArray: ResizeArray<'T>) : int = 
+    /// Same as ResizeArray.length
+    let inline count (resizeArray: ResizeArray<'T>) : int =
         if isNullSeq resizeArray then nullExn "count"
         resizeArray.Count
 
@@ -786,7 +809,7 @@ module ResizeArray =
         k
 
     /// Adds an object to the end of the ResizeArray.
-    let inline add item (resizeArray: ResizeArray<'T>) : unit = 
+    let inline add item (resizeArray: ResizeArray<'T>) : unit =
         if isNullSeq resizeArray then nullExn "add"
         resizeArray.Add item
 
@@ -807,7 +830,7 @@ module ResizeArray =
         l
 
     /// Return a fixed-length Array containing the elements of the input ResizeArray.
-    let inline toArray (resizeArray: ResizeArray<'T>) : 'T[] = 
+    let inline toArray (resizeArray: ResizeArray<'T>) : 'T[] =
         if isNullSeq resizeArray then nullExn "toArray"
         resizeArray.ToArray()
 
@@ -824,7 +847,7 @@ module ResizeArray =
             | Choice1Of2 value -> results1.Add value
             | Choice2Of2 value -> results2.Add value
         results1, results2
-    
+
     /// <summary>
     /// Splits the collection into three collections, containing the elements for which the
     /// given function returns <c>Choice1Of3</c>, <c>Choice2Of3</c> or <c>Choice3Of3</c>, respectively. This function is similar to
@@ -887,7 +910,7 @@ module ResizeArray =
             | Choice3Of5 value -> results3.Add value
             | Choice4Of5 value -> results4.Add value
             | Choice5Of5 value -> results5.Add value
-        results1, results2, results3, results4, results5        
+        results1, results2, results3, results4, results5
 
     /// <summary>Splits the collection into three collections,
     /// first  containing the elements for which the given predicate1 returns <c>true</c> ,
@@ -1192,7 +1215,7 @@ module ResizeArray =
     /// <param name="value">The value to locate in the input ResizeArray.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if the input ResizeArray contains the specified element; false otherwise.</returns>
-    let inline contains value (resizeArray: ResizeArray<'T>) = 
+    let inline contains value (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "contains"
         resizeArray.Contains(value)
 
@@ -1282,11 +1305,11 @@ module ResizeArray =
     /// <returns>The result ResizeArray.</returns>
     let countBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'Key * int> =
         if isNullSeq resizeArray then nullExn "countBy"
-        #if FABLE_COMPILER 
+        #if FABLE_COMPILER
         countByImpl StructBox<'Key>.Comparer (fun t -> StructBox(projection t)) (fun sb -> sb.Value) resizeArray
         #else
         if typeof<'Key>.IsValueType then
-            // We avoid wrapping a StructBox, because under 64 JIT we get some "hard" tail-calls which affect performance        
+            // We avoid wrapping a StructBox, because under 64 JIT we get some "hard" tail-calls which affect performance
             countByImpl HashIdentity.Structural<'Key> projection id resizeArray
         else
             // Wrap a StructBox around all keys in case the key type is itself a type using null as a representation
@@ -1347,7 +1370,7 @@ module ResizeArray =
     /// <summary>Returns an empty ResizeArray of the given type. With initial capacity zero.</summary>
     /// <returns>The empty ResizeArray.</returns>
     [<GeneralizableValue>]
-    let inline empty<'T> : ResizeArray<'T> = 
+    let inline empty<'T> : ResizeArray<'T> =
         ResizeArray<'T>()
 
 
@@ -1608,7 +1631,7 @@ module ResizeArray =
     /// <returns><c>true</c> if all of the ResizeArray elements satisfy the predicate.</returns>
     let forall (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "forall"
-        #if FABLE_COMPILER 
+        #if FABLE_COMPILER
         let len = resizeArray.Count
         let rec loop i =
             i >= len || ((predicate resizeArray.[i]) && loop (i + 1))
@@ -1647,10 +1670,10 @@ module ResizeArray =
     /// <returns>The created sub ResizeArray.</returns>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when either startIndex or count is negative, or when there aren't enough elements in the input ResizeArray.</exception>
     let sub (startIndex: int) (count: int) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "sub"        
+        if isNullSeq resizeArray then nullExn "sub"
         if startIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.sub: startIndex '%d' cannot be negative." startIndex
         if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.sub: count '%d' cannot be negative." count
-        if resizeArray.Count < startIndex + count then 
+        if resizeArray.Count < startIndex + count then
             ArgumentOutOfRangeException.Raise "ResizeArray.sub: resizeArray.Count %d is smaller than startIndex %d + count %d." resizeArray.Count startIndex count
         resizeArray.GetRange(startIndex, count)
 
@@ -1686,7 +1709,7 @@ module ResizeArray =
     /// <returns>The result ResizeArray.</returns>
     let groupBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'Key * ResizeArray<'T>> =
         if isNullSeq resizeArray then nullExn "groupBy"
-        #if FABLE_COMPILER 
+        #if FABLE_COMPILER
         groupByImpl StructBox<'Key>.Comparer (fun t -> StructBox(projection t)) (fun sb -> sb.Value) resizeArray
         #else
         if typeof<'Key>.IsValueType then
@@ -1695,7 +1718,7 @@ module ResizeArray =
         else
             // Wrap a StructBox around all keys in case the key type is itself a type using null as a representation
             groupByImpl StructBox<'Key>.Comparer (fun t -> StructBox(projection t)) (fun sb -> sb.Value) resizeArray
-        #endif  
+        #endif
 
     /// <summary>Applies a key-generating function to each element of a ResizeArray and yields a Dict of
     /// unique keys and respective elements that match to this key. As opposed to ResizeArray.groupBy the key may not be null or Option.None</summary>
@@ -1748,7 +1771,7 @@ module ResizeArray =
     /// <param name="initializer">The function to generate the initial values for each index.</param>
     /// <returns>The created ResizeArray.</returns>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative.</exception>
-    let inline init (count: int) (initializer: int -> 'T) =        
+    let inline init (count: int) (initializer: int -> 'T) =
         if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.init: count %d is negative." count
         let res = ResizeArray(count)
         for i = 0 to count - 1 do
@@ -1794,7 +1817,7 @@ module ResizeArray =
     /// <summary>Returns true if the given ResizeArray is empty, otherwise false.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if the ResizeArray is empty.</returns>
-    let inline isEmpty (resizeArray: ResizeArray<'T>) = 
+    let inline isEmpty (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "isEmpty"
         resizeArray.Count = 0
 
@@ -1803,7 +1826,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The value of the ResizeArray at the given index.</returns>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
-    let inline item index (resizeArray: ResizeArray<'T>) = 
+    let inline item index (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "item"
         resizeArray.Get index
 
@@ -1872,7 +1895,7 @@ module ResizeArray =
     /// <summary>Returns the length of a ResizeArray. You can also use property resizeArray.Count.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The length or count of the ResizeArray.</returns>
-    let inline length (resizeArray: ResizeArray<'T>) = 
+    let inline length (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "length"
         resizeArray.Count
 
@@ -1886,6 +1909,18 @@ module ResizeArray =
         // TODO replace with F# implementation using [<InlineIfLambda>] for performance?? Test on non Lambdas too.
         resizeArray.ConvertAll(System.Converter mapping)
 
+    /// <summary>Builds a new Array whose elements are the results of applying the given function
+    /// to each of the elements of the ResizeArray.</summary>
+    /// <param name="mapping">The function to transform elements of the ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>The Array of transformed elements.</returns>
+    let inline mapToArray (mapping: 'T -> 'U) (resizeArray: ResizeArray<'T>) : 'U[] =
+        if isNullSeq resizeArray then nullExn "mapToArray"
+        let res = Array.zeroCreate<'U> resizeArray.Count
+        for i = 0 to resizeArray.Count - 1 do
+            res.[i] <- mapping resizeArray.[i]
+        res
+
     /// <summary>Builds a new ResizeArray whose elements are the results of applying the given function
     /// to each of the elements of the Array.</summary>
     /// <param name="mapping">The function to transform elements of the ResizeArray.</param>
@@ -1896,7 +1931,6 @@ module ResizeArray =
         let res = ResizeArray<'U>(arr.Length)
         for i = 0 to arr.Length - 1 do
             res.Add(mapping arr.[i])
-
         res
 
     /// <summary>Builds a new ResizeArray whose elements are the results of applying the given function
@@ -2127,7 +2161,7 @@ module ResizeArray =
     /// <summary>Builds a new ResizeArray from the given enumerable object. </summary>
     /// <param name="source">The input sequence.</param>
     /// <returns>The ResizeArray of elements from the sequence.</returns>
-    let ofSeq (source: seq<'T>) = 
+    let ofSeq (source: seq<'T>) =
         if isNullSeq source then nullExn "ofSeq"
         ResizeArray(source)
 
@@ -2289,7 +2323,7 @@ module ResizeArray =
     /// <param name="initial">The value to replicate</param>
     /// <returns>The generated ResizeArray.</returns>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative.</exception>
-    let replicate count (initial: 'T) =        
+    let replicate count (initial: 'T) =
         if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.replicate: count %d cannot be negative " count
         let arr = ResizeArray(count)
         for _ = 0 to count - 1 do
@@ -2310,7 +2344,7 @@ module ResizeArray =
     /// <summary>Reverses the order of ResizeArray in place.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>unit</returns>
-    let revInPlace (resizeArray: ResizeArray<'T>) = 
+    let revInPlace (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "revInPlace"
         resizeArray.Reverse()
 
@@ -2360,9 +2394,9 @@ module ResizeArray =
     /// elements in the ResizeArray.</exception>
     let skip count (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "skip"
-        if count < 0 || count > resizeArray.Count then 
+        if count < 0 || count > resizeArray.Count then
             ArgumentOutOfRangeException.Raise "ResizeArray.skip: count %d is not in range of 0 to resizeArray.Count %d " count resizeArray.Count
-        
+
         if count = resizeArray.Count then
             ResizeArray()
         else
@@ -2448,7 +2482,7 @@ module ResizeArray =
     /// This is NOT a stable sort, i.e. the original order of equal elements is not necessarily preserved.
     /// For a stable sort, consider using Seq.sort.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    let sortInPlace<'T when 'T: comparison> (resizeArray: ResizeArray<'T>) : unit = 
+    let sortInPlace<'T when 'T: comparison> (resizeArray: ResizeArray<'T>) : unit =
         if isNullSeq resizeArray then nullExn "sortInPlace"
         resizeArray.Sort(Operators.compare) // Operators.compare is need to match sorting of Array.sort
 
@@ -2469,7 +2503,7 @@ module ResizeArray =
     /// For a stable sort, consider using Seq.sort.</summary>
     /// <param name="comparer">The function to compare pairs of ResizeArray elements.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    let sortInPlaceWith (comparer: 'T -> 'T -> int) (resizeArray: ResizeArray<'T>) : unit = 
+    let sortInPlaceWith (comparer: 'T -> 'T -> int) (resizeArray: ResizeArray<'T>) : unit =
         if isNullSeq resizeArray then nullExn "sortInPlaceWith"
         resizeArray.Sort(comparer)
 
@@ -2579,7 +2613,7 @@ module ResizeArray =
         if count = 0 then
             ResizeArray(0)
         else
-            if count > resizeArray.Count then 
+            if count > resizeArray.Count then
                 ArgumentOutOfRangeException.Raise "ResizeArray.take: count %d > resizeArray.Count %d." count resizeArray.Count
             resizeArray.GetRange(0, count)
 
@@ -2616,7 +2650,7 @@ module ResizeArray =
     /// <summary>Views the given ResizeArray as a sequence. using Seq.readonly </summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sequence of ResizeArray elements.</returns>
-    let toSeq (resizeArray: ResizeArray<'T>) : seq<'T> = 
+    let toSeq (resizeArray: ResizeArray<'T>) : seq<'T> =
         if isNullSeq resizeArray then nullExn "toSeq"
         Seq.readonly resizeArray
 
@@ -2778,7 +2812,7 @@ module ResizeArray =
     /// element of the ResizeArray and the next state value.</param>
     /// <param name="state">The initial state value.</param>
     /// <returns>The result ResizeArray.</returns>
-    let unfold<'T, 'State> (generator: 'State -> ('T * 'State) option) (state: 'State) =        
+    let unfold<'T, 'State> (generator: 'State -> ('T * 'State) option) (state: 'State) =
         let res = ResizeArray()
         let rec loop state =
             match generator state with
@@ -2840,7 +2874,7 @@ module ResizeArray =
     /// <param name="predicate">The function to test the input elements.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>a ResizeArray containing the elements for which the given predicate returns true.</returns>
-    let where (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) = 
+    let where (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "where"
         filter predicate resizeArray
 
@@ -2897,14 +2931,14 @@ module ResizeArray =
             res.Add(resizeArray1.[i], resizeArray2.[i], resizeArray3.[i])
         res
 
-    #if FABLE_COMPILER    
-    // Fable doesn't support System.Threading.Tasks.Parallel.For 
+    #if FABLE_COMPILER
+    // Fable doesn't support System.Threading.Tasks.Parallel.For
     // the Parallel operations on ResizeArray are just sequential in Fable JavaScript
-    // module ResizeArray.Parallel = ResizeArray.ResizeArray // or just shadow it ??       
+    // module ResizeArray.Parallel = ResizeArray.ResizeArray // or just shadow it ??
     #else
-    
+
     /// Parallel operations on ResizeArray using Threading.Tasks.Parallel.For
-    module Parallel =       
+    module Parallel =
 
         open System.Threading.Tasks
 
