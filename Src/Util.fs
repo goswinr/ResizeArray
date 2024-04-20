@@ -3,10 +3,10 @@ namespace ResizeArray
 open System
 open System.Collections.Generic
 
-/// Open this module to get access to yhe operators +++ and ++ 
+/// Open this module to get access to yhe operators +++ and ++
 /// to combines the contents of two Sequences or ICollection<'T> into a new ResizeArray
 module Operators =
-    
+
     /// Operator +++ to copies the contents of two Sequences into a new ResizeArray
     let inline (+++) (a : seq<'T>) ( b : seq<'T>) =
         let r = new ResizeArray<'T>()
@@ -54,15 +54,15 @@ module UtilResizeArray =
 
         type ArgumentNullException with
 
-            /// Check if null and raise System.ArgumentNullException 
-            static member Raise msg =                
+            /// Check if null and raise System.ArgumentNullException
+            static member Raise msg =
                     raise (System.ArgumentNullException("ResizeArray." + msg + " input is null!"))
 
 
     let toNiceString (x: 'T) = // TODO replace with better implementation
-        match box x with 
+        match box x with
         | null -> "null"
-        #if FABLE_COMPILER 
+        #if FABLE_COMPILER
         | :? ResizeArray<'T> as xs -> sprintf "A ResizeArray with %d items." xs.Count
         #else
         | :? ResizeArray<'T> as xs -> sprintf "A ResizeArray<%s> with %d items." (typeof<'T>).FullName xs.Count
@@ -89,8 +89,8 @@ module UtilResizeArray =
         let t = i % length
         if t >= 0 then t else t + length
 
-    let inline isNullSeq x = 
-        match x with 
-        |null -> true 
+    let inline isNullSeq x =
+        match x with
+        |null -> true
         | _ -> false
 

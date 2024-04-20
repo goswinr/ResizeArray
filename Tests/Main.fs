@@ -4,7 +4,7 @@ open ResizeArray
 
 module Main =
 
-    #if FABLE_COMPILER 
+    #if FABLE_COMPILER
 
     open Fable.Mocha
     Mocha.runTests Tests.Extensions.tests |> ignore
@@ -15,12 +15,12 @@ module Main =
 
     open Expecto
     [<EntryPoint>]
-    let main argv =  
+    let main argv =
         runTestsWithCLIArgs [] [||] Tests.Extensions.tests
         |||
-        runTestsWithCLIArgs [] [||] Tests.Module.tests      
+        runTestsWithCLIArgs [] [||] Tests.Module.tests
         |||
-        runTestsWithCLIArgs [] [||] Tests.Module2.tests      
+        runTestsWithCLIArgs [] [||] Tests.Module2.tests
 
 
     #endif
