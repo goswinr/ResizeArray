@@ -59,28 +59,11 @@ In fact FSharp.Core uses [a very similar module internally](https://github.com/d
 ### License
 [MIT](https://raw.githubusercontent.com/goswinr/ResizeArray/main/LICENSE.txt)
 
-### Test
-All Tests from the from `FSharp.Core`'s `Array` module ported and adapted to run in both javascript and dotnet.
-go to the tests folder
-
-```bash
-cd Tests
-```
-
-For testing with .NET using Expecto run
-
-```bash
-dotnet run
-```
-
-for testing with Fable.Mocha run
-
-```bash
-npm test
-```
-
-
 ### Changelog
+`0.19.0`
+- rename minIndBy to minIndexBy
+- add asArray (for casting in Fable)
+
 `0.18.0`
 - add mapToArray
 - add failIfEmpty

@@ -522,18 +522,15 @@ module ResizeArray =
     /// Swap the values of two given indices in ResizeArray
     let inline swap i j (resizeArray: ResizeArray<'T>) : unit =
         if isNullSeq resizeArray then nullExn "swap"
-        if i < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.swap: index i can't be less than 0: %d (j: %d)" i j
-        if i >= resizeArray.Count then ArgumentOutOfRangeException.Raise "ResizeArray.swap: index i can't be bigger than %d but is %d (j: %d)" (resizeArray.Count - 1) i j
+        if i < 0 || j < 0 || i >= resizeArray.Count || j >= resizeArray.Count then
+            ArgumentOutOfRangeException.Raise "ResizeArray.swap: index i=%d and j=%d can't be less than 0 or bigger than last index %d " i j (resizeArray.Count - 1)
         if i <> j then
-            if j < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.swap: index j can't be less than 0: %d (i: %d)" j i
-            if j >= resizeArray.Count then ArgumentOutOfRangeException.Raise "ResizeArray.swap: index j can't be bigger than %d but is %d (i: %d)" (resizeArray.Count - 1) j i
-            // operate on underlying list since indices are checked
             let ti = resizeArray.[i]
             resizeArray.[i] <- resizeArray.[j]
             resizeArray.[j] <- ti
 
 
-    /// internal only for finding
+    // internal, only for finding MinMax values
     module private MinMax =
         //TODO test keeping of order if equal !
 
@@ -557,7 +554,6 @@ module ResizeArray =
                     m1 <- this
                 elif cmpF this m2 then
                     m2 <- this
-
             m1, m2
 
 
@@ -580,7 +576,6 @@ module ResizeArray =
             let a = f aa
             let b = f bb
             let c = f cc
-
             if a = b || cmp a b then
                 if cmp b c then 0, 1, 2
                 else if cmp a c then 0, 2, 1
@@ -610,7 +605,6 @@ module ResizeArray =
                     m2 <- this
                 elif cmpF this m3 then
                     m3 <- this
-
             m1, m2, m3
 
         let inline indexByFun cmpF func (resizeArray: ResizeArray<'T>) =
@@ -623,7 +617,6 @@ module ResizeArray =
                 if cmpF f mf then
                     ii <- i
                     mf <- f
-
             ii
 
         let inline index2ByFun cmpF func (resizeArray: ResizeArray<'T>) =
@@ -643,9 +636,7 @@ module ResizeArray =
                 elif cmpF f mf2 then
                     i2 <- i
                     mf2 <- f
-
             i1, i2
-
 
         let inline index3ByFun (cmpOp: 'U -> 'U -> bool) (byFun: 'T -> 'U) (resizeArray: ResizeArray<'T>) =
             if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.index3ByFun: Count must be at least three: %s" resizeArray.ToNiceStringLong
@@ -672,9 +663,7 @@ module ResizeArray =
                 elif cmpOp f e3 then
                     i3 <- i
                     e3 <- f
-
             i1, i2, i3
-
 
     (* covered by part copied from Array module:
         let min resizeArray =     resizeArray |> MinMax.simple (<)
@@ -683,13 +672,14 @@ module ResizeArray =
         let maxBy f resizeArray = let i = resizeArray |> MinMax.indexByFun (>) f in resizeArray.[i]
         *)
 
+
     /// <summary>Returns the index of the smallest of all elements of the ResizeArray, compared via Operators.max on the function result.</summary>
     /// <param name="projection">The function to transform the elements into a type supporting comparison.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The index of the smallest element.</returns>
-    let inline minIndBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
-        if isNullSeq resizeArray then nullExn "minIndBy"
+    let inline minIndexBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
+        if isNullSeq resizeArray then nullExn "minIndexBy"
         resizeArray |> MinMax.indexByFun (<) projection
 
     /// <summary>Returns the index of the greatest of all elements of the ResizeArray, compared via Operators.max on the function result.</summary>
@@ -697,9 +687,15 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The index of the maximum element.</returns>
-    let inline maxIndBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
-        if isNullSeq resizeArray then nullExn "maxIndBy"
+    let inline maxIndexBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
+        if isNullSeq resizeArray then nullExn "maxIndexBy"
         resizeArray |> MinMax.indexByFun (>) projection
+
+    [<Obsolete("use minIndexBy instead.")>]
+    let inline minIndBy f xs = minIndexBy f xs
+
+    [<Obsolete("use maxIndexBy instead.")>]
+    let inline maxIndBy f xs = maxIndexBy f xs
 
     /// Returns the smallest and the second smallest element of the ResizeArray.
     /// If they are equal then the order is kept
@@ -734,16 +730,22 @@ module ResizeArray =
     /// Returns the indices of the smallest and the second smallest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min2IndBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "min2IndBy"
+    let inline min2IndicesBy f resizeArray =
+        if isNullSeq resizeArray then nullExn "min2IndicesBy"
         resizeArray |> MinMax.index2ByFun (<) f
 
     /// Returns the indices of the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max2IndBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "max2IndBy"
+    let inline max2IndicesBy f resizeArray =
+        if isNullSeq resizeArray then nullExn "max2IndicesBy"
         resizeArray |> MinMax.index2ByFun (>) f
+
+    [<Obsolete("use min2IndicesBy instead.")>]
+    let inline min2IndBy f xs = min2IndicesBy f xs
+
+    [<Obsolete("use max2IndicesBy instead.")>]
+    let inline max2IndBy f xs = max2IndicesBy f xs
 
     /// Returns the smallest three elements of the ResizeArray.
     /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
@@ -781,17 +783,23 @@ module ResizeArray =
     /// The first element is the index of the smallest, the second is the index of the second smallest and the third is the index of the third smallest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min3IndBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "min3IndBy"
+    let inline min3IndicesBy f resizeArray =
+        if isNullSeq resizeArray then nullExn "min3IndicesBy"
         resizeArray |> MinMax.index3ByFun (<) f
 
     /// Returns the indices of the three biggest elements of the ResizeArray.
     /// The first element is the index of the biggest, the second is the index of the second biggest and the third is the index of the third biggest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max3IndBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "max3IndBy"
+    let inline max3IndicesBy f resizeArray =
+        if isNullSeq resizeArray then nullExn "max3IndicesBy"
         resizeArray |> MinMax.index3ByFun (>) f
+
+    [<Obsolete("use min3IndicesBy instead.")>]
+    let inline min3IndBy f xs = min3IndicesBy f xs
+
+    [<Obsolete("use max3IndicesBy instead.")>]
+    let inline max3IndBy f xs = max3IndicesBy f xs
 
     /// Return the length or count of the collection.
     /// Same as ResizeArray.length
@@ -809,17 +817,31 @@ module ResizeArray =
         k
 
     /// Adds an object to the end of the ResizeArray.
-    let inline add item (resizeArray: ResizeArray<'T>) : unit =
+    let inline add (item:'T) (resizeArray: ResizeArray<'T>) : unit =
         if isNullSeq resizeArray then nullExn "add"
         resizeArray.Add item
 
-    /// Build a ResizeArray from the given Array.
+    /// Builds a new ResizeArray from the given Array.
+    /// (Use the asResizeArray function if you want to just cast an Array to a ResizeArray in Fable-JavaScript)
     let inline ofArray (arr: 'T[]) : ResizeArray<'T> =
         if isNullSeq arr then nullExn "ofArray"
         let l = ResizeArray(arr.Length)
         for i = 0 to arr.Length - 1 do
             l.Add arr.[i]
         l
+
+    /// Builds a new ResizeArray from the given Array.
+    /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
+    let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
+        if isNullSeq arr then nullExn "asResizeArray"
+        #if FABLE_COMPILER_JAVASCRIPT
+        unbox arr
+        #else
+        let l = ResizeArray(arr.Length)
+        for i = 0 to arr.Length - 1 do
+            l.Add arr.[i]
+        l
+        #endif
 
     /// Build a ResizeArray from the given IList Interface.
     let inline ofIList (arr: IList<'T>) : ResizeArray<'T> =
@@ -829,10 +851,23 @@ module ResizeArray =
             l.Add arr.[i]
         l
 
-    /// Return a fixed-length Array containing the elements of the input ResizeArray.
+    /// Return a fixed-length Array containing the elements of the input ResizeArray as a copy.
+    /// This function always allocates a new Array and copies the elements.
+    /// (Use the asArray function if you want to just cast a ResizeArray to an Array in Fable-JavaScript)
     let inline toArray (resizeArray: ResizeArray<'T>) : 'T[] =
         if isNullSeq resizeArray then nullExn "toArray"
         resizeArray.ToArray()
+
+    /// Return a fixed-length Array containing the elements of the input ResizeArray as a copy.
+    /// When this function is used in Fable (JavaScript) the ResizeArray is just casted to an Array.
+    /// In .NET a new Array is still allocated and the elements are copied.
+    let inline asArray (resizeArray: ResizeArray<'T>) : 'T[] =
+        if isNullSeq resizeArray then nullExn "asArray"
+        #if FABLE_COMPILER_JAVASCRIPT
+        unbox resizeArray
+        #else
+        resizeArray.ToArray()
+        #endif
 
     /// <summary>
     /// Splits the collection into two collections, containing the elements for which the
@@ -1225,6 +1260,14 @@ module ResizeArray =
     /// <returns>A copy of the input ResizeArray.</returns>
     let inline copy (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "copy"
+        resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
+
+    /// <summary>Builds a new ResizeArray that contains the elements of the given ResizeArray.
+    /// A shallow copy by calling resizeArray.GetRange(0,resizeArray.Count) </summary>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>A copy of the input ResizeArray.</returns>
+    let inline clone (resizeArray: ResizeArray<'T>) =
+        if isNullSeq resizeArray then nullExn "clone"
         resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
 
 

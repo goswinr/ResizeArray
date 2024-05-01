@@ -83,6 +83,10 @@ npm test
 
 ### Changelog
 
+`0.19.0`
+- rename minIndBy to minIndexBy
+- add asArray (for casting in Fable)
+
 `0.18.0`
 - add mapToArray
 - add failIfEmpty
