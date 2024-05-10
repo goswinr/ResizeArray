@@ -12,16 +12,27 @@ open UtilResizeArray
 module AutoOpenExtensions =
 
     type List<'T> with
-                /// Gets an item at index
-        /// (Use ResizeArray.GetNeg(i) member if you want to use negative indices too)
+
+
+        /// Gets an item at index, same as this.[index] or this.Idx(index)
+        /// Throws a descriptive Exception if the index is out of range.
+        /// (Use this.GetNeg(i) member if you want to use negative indices too)
         member inline xs.Get index =
             if index < 0 then ArgumentOutOfRangeException.Raise "resizeArray.Get(%d) failed for ResizeArray of %d items, use resizeArray.GetNeg method if you want negative indices too:\r\n%s" index xs.Count xs.ToNiceStringLong
             if index >= xs.Count then ArgumentOutOfRangeException.Raise "resizeArray.Get(%d) failed for ResizeArray of %d items:\r\n%s" index xs.Count xs.ToNiceStringLong
             xs.[index]
 
+        /// Gets an item at index, same as this.[index] or this.Get(index)
+        /// Throws a descriptive Exception if the index is out of range.
+        /// (Use this.GetNeg(i) member if you want to use negative indices too)
+        member inline xs.Idx index =
+            if index < 0 then ArgumentOutOfRangeException.Raise "resizeArray.Idx(%d) failed for ResizeArray of %d items, use resizeArray.GetNeg method if you want negative indices too:\r\n%s" index xs.Count xs.ToNiceStringLong
+            if index >= xs.Count then ArgumentOutOfRangeException.Raise "resizeArray.Idx(%d) failed for ResizeArray of %d items:\r\n%s" index xs.Count xs.ToNiceStringLong
+            xs.[index]
 
         /// Sets an item at index
-        /// (Use ResizeArray.SetNeg(i) member if you want to use negative indices too)
+        /// Throws a descriptive Exception if the index is out of range.        ///
+        /// (Use this.SetNeg(i) member if you want to use negative indices too)
         member inline xs.Set index value =
             if index < 0 then ArgumentOutOfRangeException.Raise "The curried function resizeArray.Set %d value, failed for negative number on ResizeArray of %d items, use resizeArray.SetNeg method if you want top use negative indices too, for setting %s " index xs.Count (toNiceString value)
             if index >= xs.Count then ArgumentOutOfRangeException.Raise "tThe curried function resizeArray.Set %d value, failed for ResizeArray of %d items. for setting %s " index xs.Count (toNiceString value)
@@ -58,27 +69,27 @@ module AutoOpenExtensions =
         /// Returns -1 for empty ResizeArray.
         member inline xs.LastIndex =
             // don't fail so that a loop for i=0 to xs.LastIndex will work for empty ResizeArray
-            //if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.LastIndex: Failed to get LastIndex of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
+            //if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.LastIndex: Failed to get LastIndex of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
             xs.Count - 1
 
         /// Get (or set) the last item in the ResizeArray.
         /// Equal to this.[this.Count - 1]
         member inline xs.Last
             with get () =
-                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.Last: Failed to get last item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
+                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.Last: Failed to get last item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
                 xs.[xs.Count - 1]
             and set (v: 'T) =
-                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.Last: Failed to set last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
+                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.Last: Failed to set last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
                 xs.[xs.Count - 1] <- v
 
         /// Get (or set) the second last item in the ResizeArray.
         /// Equal to this.[this.Count - 2]
         member inline xs.SecondLast
             with get () =
-                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.SecondLast: Failed to get second last item of %s" xs.ToNiceStringLong
+                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "resizeArray.SecondLast: Failed to get second last item of %s" xs.ToNiceStringLong
                 xs.[xs.Count - 2]
             and set (v: 'T) =
-                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.SecondLast: Failed to set second last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
+                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "resizeArray.SecondLast: Failed to set second last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
                 xs.[xs.Count - 2] <- v
 
 
@@ -86,27 +97,27 @@ module AutoOpenExtensions =
         /// Equal to this.[this.Count - 3]
         member inline xs.ThirdLast
             with get () =
-                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.ThirdLast: Failed to get third last item of %s." xs.ToNiceStringLong
+                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "resizeArray.ThirdLast: Failed to get third last item of %s." xs.ToNiceStringLong
                 xs.[xs.Count - 3]
             and set (v: 'T) =
-                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.ThirdLast: Failed to set third last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
+                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "resizeArray.ThirdLast: Failed to set third last item of %s to %s" xs.ToNiceStringLong (toNiceString v)
                 xs.[xs.Count - 3] <- v
 
         /// Get (or set) the first item in the ResizeArray.
         /// Equal to this.[0]
         member inline xs.First
             with get () =
-                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.First: Failed to get first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
+                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.First: Failed to get first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
                 xs.[0]
             and set (v: 'T) =
-                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.First: Failed to set first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s> to %s" (typeof<'T>).FullName (toNiceString v)
+                if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.First: Failed to set first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s> to %s" (typeof<'T>).FullName (toNiceString v)
                 xs.[0] <- v
 
         /// Gets the the only item in the ResizeArray.
         /// Fails if the ResizeArray does not have exactly one element.
         member inline xs.FirstAndOnly =
-            if xs.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.FirstOnly: Failed to get first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
-            if xs.Count > 1 then ArgumentOutOfRangeException.Raise "ResizeArray.FirstOnly: ResizeArray is expected to have only one item but has %d ResizeArray: %s" xs.Count xs.ToNiceStringLong
+            if xs.Count = 0 then ArgumentOutOfRangeException.Raise "resizeArray.FirstOnly: Failed to get first item of empty %s" xs.ToNiceStringLong // ResizeArray<%s>" (typeof<'T>).FullName
+            if xs.Count > 1 then ArgumentOutOfRangeException.Raise "resizeArray.FirstOnly: ResizeArray is expected to have only one item but has %d ResizeArray: %s" xs.Count xs.ToNiceStringLong
             xs.[0]
 
 
@@ -114,20 +125,20 @@ module AutoOpenExtensions =
         /// Equal to this.[1]
         member inline xs.Second
             with get () =
-                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.Second: Failed to get second item of %s" xs.ToNiceStringLong
+                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "resizeArray.Second: Failed to get second item of %s" xs.ToNiceStringLong
                 xs.[1]
             and set (v: 'T) =
-                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.Second: Failed to set second item of %s to %s" xs.ToNiceStringLong (toNiceString v)
+                if xs.Count < 2 then ArgumentOutOfRangeException.Raise "resizeArray.Second: Failed to set second item of %s to %s" xs.ToNiceStringLong (toNiceString v)
                 xs.[1] <- v
 
         /// Get (or set) the third item in the ResizeArray.
         /// Equal to this.[2]
         member inline xs.Third
             with get () =
-                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.Third: Failed to get third item of %s" xs.ToNiceStringLong
+                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "resizeArray.Third: Failed to get third item of %s" xs.ToNiceStringLong
                 xs.[2]
             and set (v: 'T) =
-                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.Third: Failed to set third item of %s to %s" xs.ToNiceStringLong (toNiceString v)
+                if xs.Count < 3 then ArgumentOutOfRangeException.Raise "resizeArray.Third: Failed to set third item of %s to %s" xs.ToNiceStringLong (toNiceString v)
                 xs.[2] <- v
 
         /// Checks if this.Count = 0
@@ -151,8 +162,8 @@ module AutoOpenExtensions =
 
 
         /// Gets an item in the ResizeArray by index.
-        /// Allows for negative index too ( -1 is last item,  like Python)
-        /// (From the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
+        /// Allows for negative index too ( -1 is last item, like Python)
+        /// (negative index can also be done with '^' prefix. E.g. ^0 for the last item)
         member inline xs.GetNeg index =
             let len = xs.Count
             let ii = if index < 0 then len + index else index
@@ -160,8 +171,8 @@ module AutoOpenExtensions =
             xs.[ii]
 
         /// Sets an item in the ResizeArray by index.
-        /// Allows for negative index too ( -1 is last item,  like Python)
-        /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
+        /// Allows for negative index too ( -1 is last item, like Python)
+        /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
         member inline xs.SetNeg index value =
             let len = xs.Count
             let ii = if index < 0 then len + index else index

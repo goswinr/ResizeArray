@@ -28,6 +28,7 @@
     <Description>An F# module and extensions library for ResizeArray. Works in Fable too.</Description>
     <PackageDescription>An F# module and extensions ResizeArray. Works in Fable too.</PackageDescription>    <!--used on nuget.org-->
     <WarningLevel>5</WarningLevel>    <!-- WarningLevel 3 is default , see https://github.com/dsyme/fsharp-presentations/blob/master/design-notes/off-by-default-warnings.md -->
+    <Configuration>Release</Configuration>
   </PropertyGroup>
 
   <PropertyGroup>

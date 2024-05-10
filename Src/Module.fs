@@ -60,7 +60,7 @@ module ResizeArray =
 
     /// Gets an item in the ResizeArray by index.
     /// Allows for negative index too ( -1 is last item,  like Python)
-    /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
+    /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
     let inline getNeg index (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "getNeg"
         let len = resizeArray.Count
@@ -70,7 +70,7 @@ module ResizeArray =
 
     /// Sets an item in the ResizeArray by index.
     /// Allows for negative index too ( -1 is last item,  like Python)
-    /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
+    /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
     let inline setNeg index value (resizeArray: ResizeArray<'T>) =
         if isNullSeq resizeArray then nullExn "setNeg"
         let len = resizeArray.Count

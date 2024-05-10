@@ -3,7 +3,7 @@ namespace ResizeArray
 open System
 open System.Collections.Generic
 
-/// Open this module to get access to yhe operators +++ and ++
+/// Open this module to get access to the operators +++ and ++
 /// to combines the contents of two Sequences or ICollection<'T> into a new ResizeArray
 module Operators =
 
@@ -74,8 +74,8 @@ module UtilResizeArray =
 
     /// Converts negative indices to positive ones.
     /// Correct results from -length up to length-1
-    /// e.g.: -1 is  last item .
-    /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
+    /// e.g.: -1 is last item .
+    /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
     let inline negIdx i len =
         let ii = if i < 0 then len + i else i
         if ii < 0 || ii >= len then
