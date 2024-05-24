@@ -646,7 +646,7 @@ module Module =
         // integer array
         let seqInt =
             seq { for i in 1..10 do
-                    yield [|i; i*10 |].asRarr }
+                    yield [|i; i*10 |].asRarr } |> ResizeArray.ofSeq
 
         let conIntArr = ResizeArray.concat seqInt
         if ResizeArray.length conIntArr <> 20 then Assert.Fail()
@@ -655,9 +655,9 @@ module Module =
         let strSeq =
             seq { for a in 'a'..'c' do
                     for b in 'a'..'c' do
-                        yield [|a.ToString();b.ToString()  |].asRarr}
+                        yield [|a.ToString();b.ToString()  |].asRarr} |> ResizeArray.ofSeq
 
-        let conStrArr = ResizeArray.concat strSeq
+        let conStrArr = ResizeArray.concat strSeq|> ResizeArray.ofSeq
         if ResizeArray.length conStrArr <> 18 then Assert.Fail()
 
         // Empty array

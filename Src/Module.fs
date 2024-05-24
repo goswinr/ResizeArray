@@ -1194,7 +1194,8 @@ module ResizeArray =
         if isNullSeq resizeArray then nullExn "collect"
         //let collect (mapping: 'T -> seq<'U>)  (resizeArray: ResizeArray<'T>) : ResizeArray<'U> = // tests don't pass like that
         let res = ResizeArray(resizeArray.Count)
-        for e in resizeArray do
+        for i = 0 to resizeArray.Count - 1 do
+            let e = resizeArray.[i]
             res.AddRange(mapping e)
         res
 
@@ -1232,15 +1233,16 @@ module ResizeArray =
     /// <summary>Builds a new ResizeArray that contains the elements of each of the given sequence of sequences.</summary>
     /// <param name="resizeArrays">The input sequence of ResizeArrays.</param>
     /// <returns>The concatenation of the sequence of input ResizeArrays.</returns>
-    let concat (resizeArrays: seq<#seq<'T>>) : ResizeArray<'T> =
+    let concat (resizeArrays: ResizeArray<ResizeArray<'T>>) : ResizeArray<'T> =
         if isNullSeq resizeArrays then nullExn "concat"
         //let concat (resizeArrays: ResizeArray<ResizeArray<'T>>) : ResizeArray<'T> =  // test don't pass with this
         //if resizeArrays.Count = 0 then
-        if Seq.isEmpty resizeArrays then
+        if resizeArrays.Count = 0 then
             ResizeArray(0)
         else
             let res = ResizeArray() //resizeArrays.[0].Clone()
-            for r in resizeArrays do
+            for i = 0 to resizeArrays.Count - 1 do
+                let r = resizeArrays.[i]
                 if isNullSeq r then nullExn "concat inner"
                 res.AddRange(r)
             //for i=1 to resizeArrays.(resizeArray.Count-1) do res.AddRange(resizeArrays.[i])
@@ -1325,7 +1327,8 @@ module ResizeArray =
         else
             let dict = Dictionary comparer
             // Build the groupings
-            for v in resizeArray do
+            for i = 0 to resizeArray.Count - 1 do
+                let v = resizeArray.[i]
                 let safeKey = projection v
                 let mutable prev = Unchecked.defaultof<_>
                 if dict.TryGetValue(safeKey, &prev) then
@@ -2710,13 +2713,13 @@ module ResizeArray =
             ResizeArray(0)
         else
             let lenInner = resizeArrays.[0].Count
-            for j in 1 .. len - 1 do
+            for j = 1 to len - 1 do
                 if lenInner <> resizeArrays.[j].Count then ArgumentOutOfRangeException.Raise "ResizeArray.transpose: the count %d in sub ResizeArray %d does not match the count of the first ResizeArray %d." resizeArrays.[j].Count j lenInner
             let result = ResizeArray(lenInner)
-            for i in 0 .. lenInner - 1 do
+            for i = 0 to lenInner - 1 do
                 let sub = ResizeArray(len)
                 result.Add(sub)
-                for j in 0 .. len - 1 do
+                for j = 0 to len - 1 do
                     sub.Add(resizeArrays.[j].[i])
             result
 
