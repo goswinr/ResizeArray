@@ -60,7 +60,8 @@ In fact FSharp.Core uses [a very similar module internally](https://github.com/d
 [MIT](https://raw.githubusercontent.com/goswinr/ResizeArray/main/LICENSE.txt)
 
 ### Changelog
-
+`0.20.0`
+- add filteri
 
 `0.19.0`
 - add filteri
