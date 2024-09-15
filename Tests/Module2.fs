@@ -1518,7 +1518,10 @@ module Module2 =
         throwsRange (fun () -> xs |> ResizeArray.rotateUpTillLast (fun i -> i = 99) |> ignore  )
 
 
-
-
+    testCase "ResizeArray.filteri " <| fun _ ->
+        let arr = [|'a';'b';'c'|].asRarr
+        let result = arr|> ResizeArray.filteri (fun i -> i % 2 = 0)
+        Assert.AreEqual([|'a';'c'|].asRarr , result)
+        Assert.AreNotEqual(arr, result,"input array should not be modified")
 
   ]

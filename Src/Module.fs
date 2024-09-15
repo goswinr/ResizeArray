@@ -174,6 +174,19 @@ module ResizeArray =
         else
             resizeArray.GetRange(fromStartCount, c - fromStartCount - fromEndCount)
 
+    /// <summary>Returns a new collection containing only the elements of the collection
+    /// for which the given predicate run on the index returns <c>true</c>.</summary>
+    /// <param name="predicate">The function to test the current index.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>A ResizeArray containing the elements for which the given predicate returns true.</returns>
+    let inline filteri (predicate: int -> bool) (resizeArray: ResizeArray<'T>) =
+        if isNullSeq resizeArray then nullExn "filteri"
+        let res = ResizeArray()
+        for i = 0 to resizeArray.Count - 1 do
+            if predicate i then
+                res.Add(resizeArray.[i])
+        res
+
     //------------------------------------------------------------------
     //---------------------prev-this-next ------------------------------
     //------------------------------------------------------------------
