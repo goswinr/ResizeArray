@@ -220,10 +220,9 @@ module AutoOpenExtensions =
 
         /// <summary>Get the index for the element offset elements away from the end of the collection.
         /// This member exists to support F# indexing from back: ^0 is last item, ^1 is second last</summary>
-        /// <param name="rank">The rank of the index. (unused in ResizeArray)</param>
         /// <param name="offset">The offset from the end.</param>
         /// <returns>The corresponding index from the start.</returns>
-        member inline xs.GetReverseIndex(rank, offset: int) : int =
+        member inline xs.GetReverseIndex(_, offset: int) : int =  // The first parameter, 'rank'  is unused in ResizeArray
             if offset < 0 then ArgumentOutOfRangeException.Raise " resizeArray.[^%d]: index from back is negative for ResizeArray of %d items" offset xs.Count
             if offset >= xs.Count then ArgumentOutOfRangeException.Raise " resizeArray.[^%d]: index from back is equal or bigger than resizeArray.Count %d" offset xs.Count
             xs.Count - offset - 1
