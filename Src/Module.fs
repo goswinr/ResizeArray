@@ -7,6 +7,22 @@ open System.Collections.Generic
 #nowarn "44" //for opening the hidden but not Obsolete UtilResizeArray module
 open UtilResizeArray
 
+
+module Array =
+
+    /// Builds a new ResizeArray from the given Array.
+    /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
+    let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
+        #if FABLE_COMPILER_JAVASCRIPT
+        unbox arr
+        #else
+        if isNullSeq arr then ArgumentNullException.Raise "Array.asResizeArray"
+        let l = ResizeArray(arr.Length)
+        for i = 0 to arr.Length - 1 do
+            l.Add arr.[i]
+        l
+        #endif
+
 /// A module for functions on  ResizeArray.
 /// A ResizeArray is a System.Collections.Generic.List<'T>.
 /// This module has all functions from the FSharp.Core.Array module implemented for ResizeArray. And more.
@@ -845,6 +861,7 @@ module ResizeArray =
 
     /// Builds a new ResizeArray from the given Array.
     /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
+    [<Obsolete("Use Array.asResizeArray instead")>]
     let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
         if isNullSeq arr then nullExn "asResizeArray"
         #if FABLE_COMPILER_JAVASCRIPT
@@ -2969,7 +2986,6 @@ module ResizeArray =
         let res = ResizeArray(len1)
         for i = 0 to resizeArray1.Count - 1 do
             res.Add(resizeArray1.[i], resizeArray2.[i])
-
         res
 
 
