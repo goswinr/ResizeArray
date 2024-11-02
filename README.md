@@ -1,17 +1,18 @@
 
+![Logo](https://raw.githubusercontent.com/goswinr/ResizeArray/main/Docs/img/logo128.png)
 # ResizeArray
 
 [![ResizeArray on nuget.org](https://img.shields.io/nuget/v/ResizeArray)](https://www.nuget.org/packages/ResizeArray/)
-[![ResizeArray on fuget.org](https://www.fuget.org/packages/ResizeArray/badge.svg)](https://www.fuget.org/packages/ResizeArray)
+[![Build Status](https://github.com/goswinr/ResizeArray/actions/workflows/build.yml/badge.svg)](https://github.com/goswinr/ResizeArray/actions/workflows/build.yml)
+[![Docs Build Status](https://github.com/goswinr/ResizeArray/actions/workflows/docs.yml/badge.svg)](https://github.com/goswinr/ResizeArray/actions/workflows/docs.yml)
+[![Test Status](https://github.com/goswinr/ResizeArray/actions/workflows/test.yml/badge.svg)](https://github.com/goswinr/ResizeArray/actions/workflows/test.yml)
+[![license](https://img.shields.io/github/license/goswinr/ResizeArray)](LICENSE.md)
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/ResizeArray.svg)
-[![license](https://img.shields.io/github/license/goswinr/ResizeArray)](LICENSE)
+
 
 ResizeArray is an F# extension and module library for `ResizeArray<'T>` ( = `Collection.Generic.List<'T>`)
 
 It also works with [Fable](https://fable.io/).
-
-
-![Logo](https://raw.githubusercontent.com/goswinr/ResizeArray/main/Doc/logo.png)
 
 ### It Includes:
 
@@ -56,52 +57,35 @@ But ResizeArray (being mutable)  still offers the best performance for collectio
 
 In fact FSharp.Core uses [a very similar module internally](https://github.com/dotnet/fsharp/blob/main/src/Compiler/Utilities/ResizeArray.fs)
 
+### Full API Documentation
 
-### License
-[MIT](https://raw.githubusercontent.com/goswinr/ResizeArray/main/LICENSE.txt)
+[goswinr.github.io/ResizeArray](https://goswinr.github.io/ResizeArray/reference/resizearray.html)
 
-### Test
-All Tests from the from `FSharp.Core`'s `Array` module ported and adapted to run in both javascript and dotnet.
-go to the tests folder
+
+### Tests
+All Tests run in both javascript and dotnet.
+Successful Fable compilation to typescript is verified too.
+Go to the tests folder:
 
 ```bash
 cd Tests
 ```
 
-For testing with .NET using Expecto run
+For testing with .NET using Expecto:
 
 ```bash
 dotnet run
 ```
 
-for testing with Fable.Mocha run
+for JS testing with Fable.Mocha and TS verification:
 
 ```bash
 npm test
 ```
 
+### License
+[MIT](https://github.com/goswinr/ResizeArray/blob/main/LICENSE.md)
 
 ### Changelog
-`0.20.0`
-- add filteri
+see [CHANGELOG.md](https://github.com/goswinr/ResizeArray/blob/main/CHANGELOG.md)
 
-`0.19.0`
-- ad TS build check
-- rename minIndBy to minIndexBy
-- add asArray (for casting in Fable)
-
-`0.18.0`
-- add mapToArray
-- add failIfEmpty
-
-`0.17.0`
-- don't fail on LastIndex when empty
-
-`0.16.0`
-- add null checks
-- add 'partitionBy' functions
-- add equality checks for nested ResizeArrays
-- flip arg order of 'sub' function
-
-`0.15.0`
-- implementation ported from `Rarr` type in https://github.com/goswinr/FsEx/blob/main/Src/RarrModule.fs

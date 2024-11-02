@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+     <!-- <TargetFrameworks>net472;net6.0</TargetFrameworks> -->
+    <TargetFramework>netstandard2.0</TargetFramework>  <!-- not the plural TargetFrameworks. fails with  https://fsprojects.github.io/FSharp.Formatting/apidocs.html -->
+    <LangVersion>preview</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages> <!--to only have the English resources-->
+
+    <RootNamespace>ResizeArray</RootNamespace>
+    <AssemblyName>ResizeArray</AssemblyName>
+    <AssemblyTitle>ResizeArray</AssemblyTitle>
+    <Title>ResizeArray</Title>
+    <Product>ResizeArray</Product>
+    <PackageId>ResizeArray</PackageId>
+    <!-- <Version>0.20.0</Version>  done by Ionide.KeepAChangelog.Tasks
+    <AssemblyVersion>0.20.0</AssemblyVersion>
+    <FileVersion>0.20.0</FileVersion>
+    <PackageReleaseNotes></PackageReleaseNotes> -->
+    <Authors>GoswinR</Authors>
+    <Copyright>Goswin Rothenthal 2021</Copyright>
+    <Description>An F# module and extensions library for ResizeArray. Works in Fable too.</Description>
+    <PackageDescription>An F# module and extensions ResizeArray. Works in Fable too.</PackageDescription>    <!--used on nuget.org-->
+    <WarningLevel>5</WarningLevel>    <!-- WarningLevel 3 is default , see https://github.com/dsyme/fsharp-presentations/blob/master/design-notes/off-by-default-warnings.md -->
+    <Configuration>Release</Configuration>
+    <OtherFlags>$(OtherFlags)--warnon:3390</OtherFlags>  <!-- 3390 to verify xml docstrings https://devblogs.microsoft.com/dotnet/announcing-f-5/#improved-compiler-analysis-for-library-authors -->
+    <OtherFlags>$(OtherFlags) --warnon:1182</OtherFlags> <!-- 1182: warn on unused variables -->
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile> <!-- for FsDocs -->
+    <Configuration>Release</Configuration>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTags>fsharp;ResizeArray;fable;fable-library</PackageTags>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <!-- <SymbolPackageFormat>snupkg</SymbolPackageFormat>     -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageIcon>logo128.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DebugType>embedded</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <RepositoryUrl>https://github.com/goswinr/ResizeArray</RepositoryUrl>
+    <FsDocsLicenseLink>https://github.com/goswinr/ResizeArray/blob/main//LICENSE.md</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://github.com/goswinr/ResizeArray/blob/main/CHANGELOG.md</FsDocsReleaseNotesLink>
+    <PackageProjectUrl>https://goswinr.github.io/ResizeArray</PackageProjectUrl>
+
+    <FsDocsFaviconSource>img/favicon.ico</FsDocsFaviconSource>
+    <FsDocsWarnOnMissingDocs>true</FsDocsWarnOnMissingDocs>
+
+    <ChangelogFile>../CHANGELOG.md</ChangelogFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="6.0.7" />    <!-- 6.0 for InlineIfLambda , otherwise the minimum FSharp.Core version would be forced by the SDK used for building it. this would be needlessly too high-->
+    <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8" PrivateAssets="all"  />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" />
+    <None Include="../Docs/img/logo128.png" Pack="true" PackagePath="" />   <!--PackagePath = "" makes the file available to nuget pack tool-->
+
+    <Content Include="*.fsproj; **/*.fs; **/*.fsi" PackagePath="fable/" />
+
+    <Compile Include="Util.fs" />
+    <Compile Include="Extensions.fs" />
+    <Compile Include="ComputationalExpression.fs" />
+    <Compile Include="Module.fs" />
+  </ItemGroup>
+
+  <Target Name="CopyReadmeToDocs" AfterTargets="Build">
+    <!-- for fsdocs to build locally -->
+    <Copy SourceFiles="../README.md" DestinationFiles="../Docs/index.md" ContinueOnError="false"/>
+  </Target>
+</Project>

@@ -1,11 +1,11 @@
 {
   "type": "module",
   "scripts": {
-    "checkTS": "tsc --target es2022 ../Src/Module.fs.ts",
-    "watchTS": "dotnet fable watch ../ResizeArray.fsproj --lang typescript          --run npm run checkTS" ,
-    "buildTS": "dotnet fable       ../ResizeArray.fsproj --lang typescript --silent --run npm run checkTS" ,
-    "pretest": "dotnet fable --outDir dist/tests --noCache ",
-    "test": "mocha dist/tests && npm run buildTS"
+    "watchTS": "dotnet fable watch --outDir ts --lang typescript ../Src/ResizeArray.fsproj --run npx tsc" ,
+
+    "buildTS": "dotnet fable --outDir ts --noCache  --lang typescript ../Src/ResizeArray.fsproj --silent --run npx tsc" ,
+    "pretest": "dotnet fable --outDir js --noCache ",
+    "test": "mocha js && npm run buildTS"
   },
   "dependencies": {
     "mocha": "^10.7.3"
