@@ -12,7 +12,15 @@
 
 ResizeArray is an F# extension and module library for `ResizeArray<'T>` ( = `Collection.Generic.List<'T>`)
 
-It also works with [Fable](https://fable.io/).
+It also works in JS and TS with [Fable](https://fable.io/).
+
+This library was designed for use with F# scripting.
+Functions and methods never return null.
+Only functions starting with `try...` will return an F# Option.
+Otherwise when a function fails on invalid input it will throw a descriptive exception.
+
+I was always annoyed that an IndexOutOfRangeException does not include the actual index that was out of bounds nor the actual size of the array.
+This library fixes that in `resizeArray.Get`, `resizeArray.Set`, `resizeArray.Slice` and other item access functions.
 
 ### It Includes:
 
@@ -23,6 +31,9 @@ It also works with [Fable](https://fable.io/).
 With nicer IndexOutOfRangeExceptions that include the bad index and the actual size.
 
 - **All** Tests from the from `FSharp.Core`'s `Array` module ported and adapted to run in both javascript and dotnet.
+
+
+See also https://github.com/goswinr/ArrayT/ for a similar library for `array<'T>`.
 
 ### Usage
 Just open the namespace
