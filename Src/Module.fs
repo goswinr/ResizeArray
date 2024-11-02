@@ -7,7 +7,7 @@ open System.Collections.Generic
 #nowarn "44" //for opening the hidden but not Obsolete UtilResizeArray module
 open UtilResizeArray
 
-
+/// This module has only one conversion function. Array.asResizeArray
 module Array =
 
     /// Builds a new ResizeArray from the given Array.
@@ -23,7 +23,7 @@ module Array =
         l
         #endif
 
-/// A module for functions on  ResizeArray.
+/// The main module for functions on ResizeArray.
 /// A ResizeArray is a System.Collections.Generic.List<'T>.
 /// This module has all functions from the FSharp.Core.Array module implemented for ResizeArray. And more.
 module ResizeArray =
@@ -3081,6 +3081,7 @@ module ResizeArray =
     #else
 
     /// Parallel operations on ResizeArray using Threading.Tasks.Parallel.For
+    /// The API is aligned with from FSharp.Core.Array.Parallel module
     module Parallel =
 
         open System.Threading.Tasks

@@ -7,7 +7,7 @@ open System.Collections.Generic
 #nowarn "44" //for opening the hidden but not Obsolete UtilResizeArray module
 open UtilResizeArray
 
-/// Extension methods for ResizeArray<'T>
+/// Extension methods for ResizeArray<'T>.
 /// This module is automatically opened when the namespace ResizeArray is opened.
 [<AutoOpen>]
 module AutoOpenResizeArrayExtensions =

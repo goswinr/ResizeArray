@@ -2,7 +2,14 @@
 
 open System
 
-module ComputationalExpression =
+
+
+/// This module is automatically opened when the namespace ResizeArray is opened.
+/// It provides a computational expression builder for ResizeArray<'T>.
+/// <c>resizeArray { ... }</c>
+/// This builder allows you to create a ResizeArray just like you would create a IEnumerable with seq expressions <c>seq { ... }</c>.
+[<AutoOpen>]
+module AutoOpenComputationalExpression  =
 
     //[<InlineIfLambda>] needs F# 6.0
 
@@ -15,7 +22,7 @@ module ComputationalExpression =
     // https://fssnip.net/8aq/title/Computation-Expression-Stub
 
     //[<NoComparison; NoEquality>]
-    type ResizeArrayBuilder<'T> () =
+    type ComputationalExpressionBuilderResizeArray<'T> () =
 
         member inline _.Yield (x: 'T) =
             fun (r: ResizeArray<'T>) ->
@@ -77,8 +84,8 @@ module ComputationalExpression =
                     disposable.Dispose()
             )
 
-[<AutoOpen>]
-module AutoOpenComputationalExpression  =
 
-    /// Computational Expression:  use 'yield' to add elements to a ResizeArray (a Collections.Generic.List).
-    let resizeArray<'T> = new ComputationalExpression.ResizeArrayBuilder<'T> ()
+    /// A computational expression builder for ResizeArray<'T>.
+    /// <c>resizeArray { ... }</c>
+    /// It allows you to create a ResizeArray just like you would create a IEnumerable with seq expressions <c>seq { ... }</c>.
+    let resizeArray<'T> = new ComputationalExpressionBuilderResizeArray<'T> ()
