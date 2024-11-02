@@ -1,4 +1,4 @@
-namespace ResizeArray
+﻿namespace ResizeArray
 
 open System
 open System.Collections.Generic
@@ -16,7 +16,7 @@ module Array =
         #if FABLE_COMPILER_JAVASCRIPT
         unbox arr
         #else
-        if isNullSeq arr then ArgumentNullException.Raise "Array.asResizeArray"
+        if isNull arr then nullExn ": Array.asResizeArray"
         let l = ResizeArray(arr.Length)
         for i = 0 to arr.Length - 1 do
             l.Add arr.[i]
@@ -29,179 +29,156 @@ module Array =
 module ResizeArray =
 
 
-
-    let inline private isNullSeq (x:IEnumerable<'T>) = Object.ReferenceEquals(null,x)
-
-    let inline private nullExn msg = ArgumentNullException.Raise msg
-
-
-    /// <summary>Gets an element from an ResizeArray. (Use ResizeArray.getNeg(i) function if you want to use negative indices too.)</summary>
-    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <summary>Gets an element from an Array. (Use Array.getNeg(i) function if you want to use negative indices too.)</summary>
+    /// <param name="arr">The input Array.</param>
     /// <param name="index">The input index.</param>
-    /// <returns>The value of the ResizeArray at the given index.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
-    let inline get (resizeArray: ResizeArray<'T>) index =
-        if isNullSeq resizeArray then nullExn "get"
-        resizeArray.Get index
+    /// <returns>The value of the Array at the given index.</returns>
+    /// <exception cref="T:System.IndexOutOfRangeException">Thrown when the index is negative or the input Array does not contain enough elements.</exception>
+    let inline get (arr: ResizeArray<'T>) index =
+        if isNull arr then nullExn "get"
+        arr.Get index
 
 
-    /// <summary>Sets an element of a ResizeArray. (use ResizeArray.setNeg(i) function if you want to use negative indices too)</summary>
-    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <summary>Sets an element of a Array. (use Array.setNeg(i) function if you want to use negative indices too)</summary>
+    /// <param name="arr">The input Array.</param>
     /// <param name="index">The input index.</param>
     /// <param name="value">The input value.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
-    let inline set (resizeArray: ResizeArray<'T>) index value =
-        if isNullSeq resizeArray then nullExn "set"
-        resizeArray.Set index value
+    /// <exception cref="T:System.IndexOutOfRangeException">Thrown when the index is negative or the input Array does not contain enough elements.</exception>
+    let inline set (arr: ResizeArray<'T>) index value =
+        if isNull arr then nullExn "set"
+        arr.Set index value
 
 
     //---------------------------------------------------
-    // functions added only in ResizeArray: (not in FSharp.Core Array module)
+    // functions added that are not in FSharp.Core Array module)
     //----------------------------------------------------
 
-    /// Raises an Exception if the ResizeArray is empty.
+    /// Raises an Exception if the Array is empty.
     /// (Useful for chaining)
-    /// Returns the input ResizeArray
-    let inline failIfEmpty (errorMessage: string) (resizeArray: ResizeArray<'T>) =
-        if resizeArray.Count = 0 then raise <| Exception("ResizeArray.FailIfEmpty: " + errorMessage)
-        resizeArray
+    /// Returns the input Array
+    let inline failIfEmpty (errorMessage: string) (arr: ResizeArray<'T>) =
+        if arr.Count = 0 then
+            failSimpel ("Array.FailIfEmpty: " + errorMessage)
+        arr
 
-    /// Raises an Exception if the ResizeArray has less then count items.
+    /// Raises an Exception if the Array has less then count items.
     /// (Useful for chaining)
-    /// Returns the input ResizeArray
-    let failIfLessThan (count) (errorMessage: string) (resizeArray: ResizeArray<'T>) =
-        if resizeArray.Count < count then raise <| Exception($"ResizeArray.FailIfLessThan {count}: {errorMessage}")
-        resizeArray
+    /// Returns the input Array
+    let failIfLessThan (count) (errorMessage: string) (arr: ResizeArray<'T>) =
+        if arr.Count < count then
+            failSimpel $"Array.FailIfLessThan {count}: {errorMessage}"
+        arr
 
 
-    /// Gets an item in the ResizeArray by index.
+    /// Gets an item in the Array by index.
     /// Allows for negative index too ( -1 is last item,  like Python)
     /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
-    let inline getNeg index (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "getNeg"
-        let len = resizeArray.Count
-        let ii = if index < 0 then len + index else index
-        if ii < 0 || ii >= len then ArgumentOutOfRangeException.Raise "ResizeArray.GetNeg: Failed to get index %d from ResizeArray of %d items: %s" index resizeArray.Count resizeArray.ToNiceStringLong
-        resizeArray.[ii] // access List directly to not check index twice
+    let inline getNeg index (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "getNeg"
+        arr.GetNeg index
 
-    /// Sets an item in the ResizeArray by index.
+
+    /// Sets an item in the Array by index.
     /// Allows for negative index too ( -1 is last item,  like Python)
     /// (a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
-    let inline setNeg index value (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "setNeg"
-        let len = resizeArray.Count
-        let ii = if index < 0 then len + index else index
-        if ii < 0 || ii >= len then ArgumentOutOfRangeException.Raise "ResizeArray.SetNeg: Failed to set index %d to %s from ResizeArray of %d items: %s" index (toNiceString value) resizeArray.Count resizeArray.ToNiceStringLong
-        resizeArray.[ii] <- value // access List directly to not check index twice
+    let inline setNeg index value (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "setNeg"
+        arr.SetNeg index value
 
     /// Any index will return a value.
-    /// ResizeArray is treated as an endless loop in positive and negative direction
-    let inline getLooped index (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "getLooped"
-        let len = resizeArray.Count
-        if len = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.GetLooped: Failed to get index %d from ResizeArray of 0 items" index
-        let t = index % len
-        let ii = if t >= 0 then t else t + len
-        resizeArray.[ii] // access List directly to not check index twice
+    /// Array is treated as an endless loop in positive and negative direction
+    let inline getLooped index (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "getLooped"
+        arr.GetLooped index
 
     /// Any index will set a value.
-    /// ResizeArray is treated as an endless loop in positive and negative direction
-    let inline setLooped index value (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "setLooped"
-        let len = resizeArray.Count
-        if len = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.SetLooped: Failed to Set index %d to %s in ResizeArray of 0 items" index (toNiceString value)
-        let t = index % len
-        let ii = if t >= 0 then t else t + len
-        resizeArray.[ii] <- value // access List directly to not check index twice
+    /// Array is treated as an endless loop in positive and negative direction
+    let inline setLooped index value (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "setLooped"
+        arr.SetLooped index value
 
-    /// Get and remove last item from ResizeArray
-    let inline pop (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "pop"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "Failed to pop from %s" resizeArray.ToNiceStringLong
-        let i = resizeArray.Count - 1
-        let v = resizeArray.[i] // access List directly to not check index twice
-        resizeArray.RemoveAt(i)
-        v
 
-    /// Gets the second last item in the ResizeArray.
+    /// Gets the second last item in the Array.
     /// Same as this.[this.Count - 2]
-    let inline secondLast (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "secondLast"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.secondLast: Failed to get second last item of %s" resizeArray.ToNiceStringLong
-        resizeArray.[resizeArray.Count - 2]
+    let inline secondLast (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "secondLast"
+        arr.SecondLast
 
-    /// Gets the third last item in the ResizeArray.
+    /// Gets the third last item in the Array.
     /// Same as this.[this.Count - 3]
-    let inline thirdLast (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "thirdLast"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.thirdLast: Failed to get third last item of %s" resizeArray.ToNiceStringLong
-        resizeArray.[resizeArray.Count - 3]
+    let inline thirdLast (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "thirdLast"
+        arr.ThirdLast
 
-    /// Gets the first item in the ResizeArray.
+    /// Gets the first item in the Array.
     /// Same as this.[0]
-    let inline first (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "first"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.first: Failed to get first item of %s" resizeArray.ToNiceStringLong
-        resizeArray.[0]
+    let inline first (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "first"
+        arr.First
 
-    /// Gets the the only item in the ResizeArray.
-    /// Fails if the ResizeArray does not have exactly one element.
-    let inline firstAndOnly (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "firstAndOnly"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.firstOnly: Failed to get first item of empty %s" resizeArray.ToNiceStringLong
-        if resizeArray.Count > 1 then ArgumentOutOfRangeException.Raise "ResizeArray.firstOnly: ResizeArray is expected to have only one item but has %d ResizeArray: %s"  resizeArray.Count resizeArray.ToNiceStringLong
-        resizeArray.[0]
+    /// Gets the the only item in the Array.
+    /// Fails if the Array does not have exactly one element.
+    let inline firstAndOnly (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "firstAndOnly"
+        arr.FirstAndOnly
 
-    /// Gets the second item in the ResizeArray.
+    /// Gets the second item in the Array.
     /// Same as this.[1]
-    let inline second (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "second"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.second: Failed to get second item of %s" resizeArray.ToNiceStringLong
-        resizeArray.[1]
+    let inline second (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "second"
+        arr.Second
 
-    /// Gets the third item in the ResizeArray.
+    /// Gets the third item in the Array.
     /// Same as this.[2]
-    let inline third (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "third"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.third: Failed to get third item of %s" resizeArray.ToNiceStringLong
-        resizeArray.[2]
+    let inline third (arr: ResizeArray<'T>) =
+        if isNull arr then nullExn "third"
+        arr.Third
 
-    /// Slice the ResizeArray given start and end index.
+    /// Slice the Array given start and end index.
     /// Allows for negative indices too. ( -1 is last item, like Python)
-    /// The resulting ResizeArray includes the end index.
-    /// Raises an ArgumentOutOfRangeException if indices are out of range.
-    /// If you don't want an exception to be raised for index overflow or overlap use ResizeArray.trim.
+    /// The resulting Array includes the end index.
+    /// Raises an IndexOutOfRangeException if indices are out of range.
+    /// If you don't want an exception to be raised for index overflow or overlap use Array.trim.
     /// (A negative index can also be done with '^' prefix. E.g. ^0 for the last item, when F# Language preview features are enabled.)
-    let slice startIdx endIdx (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "slice"
-        resizeArray.GetSlice(startIdx, endIdx)
+    let slice startIdx endIdx (arr: ResizeArray<'T>) : ResizeArray<'T> =
+            if isNull arr then nullExn "slice"
+        #if FABLE_COMPILER
+            let count = arr.Count
+            let st  = if startIdx< 0 then count + startIdx        else startIdx
+            let len = if endIdx  < 0 then count + endIdx - st + 1 else endIdx - st + 1
+            if st < 0 || st > count - 1 then
+                failIdx arr $"Slice: Start index {startIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
 
+            if st+len > count then
+                failIdx arr $"Slice: End index {endIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
+
+            if len < 0 then
+                // let en = if endIdx<0 then count+endIdx else endIdx
+                // let err = sprintf "ResizeArray.Slice: Start index '%A' (= %d) is bigger than end index '%A'(= %d) for ResizeArray of %d items" startIdx st endIdx en  count
+                failIdx arr $"Slice: Start index {startIdx} is bigger than end index {endIdx} for ResizeArray of {count} items"
+
+            // ResizeArray.init len (fun i -> this.[st+i])
+            arr.GetRange(st, len)
+        #else
+            arr.Slice(startIdx, endIdx)
+        #endif
 
     /// Trim items from start and end.
-    /// If the sum of fromStartCount and fromEndCount is bigger than resizeArray.Count it returns an empty ResizeArray.
-    /// If you want an exception to be raised for index overlap (total trimming is bigger than count) use ResizeArray.slice with negative end index.
-    let trim fromStartCount fromEndCount (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "trim"
-        if fromStartCount < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.trim: fromStartCount can't be negative: %d" fromStartCount
-        if fromEndCount < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.trim: fromEndCount can't be negative: %d" fromEndCount
-        let c = resizeArray.Count
+    /// If the sum of fromStartCount and fromEndCount is bigger than arr.Count it returns an empty Array.
+    /// If you want an exception to be raised for index overlap (total trimming is bigger than count) use Array.slice with negative end index.
+    let trim fromStartCount fromEndCount (arr: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull arr then nullExn "trim"
+        if fromStartCount < 0 then
+            fail arr $"trim: fromStartCount can't be negative: {fromStartCount}"
+        if fromEndCount < 0 then
+            fail arr $"trim: fromEndCount can't be negative: {fromEndCount}"
+        let c = arr.Count
         if fromStartCount + fromEndCount >= c then
             ResizeArray<'T>(0)
         else
-            resizeArray.GetRange(fromStartCount, c - fromStartCount - fromEndCount)
+            arr.GetRange(fromStartCount, c - fromStartCount - fromEndCount)
 
-    /// <summary>Returns a new collection containing only the elements of the collection
-    /// for which the given predicate run on the index returns <c>true</c>.</summary>
-    /// <param name="predicate">The function to test the current index.</param>
-    /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <returns>A ResizeArray containing the elements for which the given predicate returns true.</returns>
-    let inline filteri (predicate: int -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "filteri"
-        let res = ResizeArray()
-        for i = 0 to resizeArray.Count - 1 do
-            if predicate i then
-                res.Add(resizeArray.[i])
-        res
+
 
     //------------------------------------------------------------------
     //---------------------prev-this-next ------------------------------
@@ -212,8 +189,9 @@ module ResizeArray =
     /// Not looped.
     /// The resulting seq is one element shorter than the input ResizeArray.
     let windowed2 (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "windowed2"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2 input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "windowed2"
+        if resizeArray.Count < 2 then
+            fail resizeArray "windowed2 input has less than two items"
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 resizeArray.[i], resizeArray.[i + 1]
@@ -222,8 +200,9 @@ module ResizeArray =
     /// Yields looped Seq from (first, second)  up to (last, first).
     /// The resulting seq has the same element count as the input ResizeArray.
     let thisNext (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "thisNext"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.thisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "thisNext"
+        if resizeArray.Count < 2 then
+            fail resizeArray "thisNext input has less than two items"
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 resizeArray.[i], resizeArray.[i + 1]
@@ -233,8 +212,9 @@ module ResizeArray =
     /// Yields looped Seq from (last,first)  up to (second-last, last).
     /// The resulting seq has the same element count as the input ResizeArray.
     let prevThis (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "prevThis"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThis input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "prevThis"
+        if resizeArray.Count < 2 then
+            fail resizeArray "prevThis input has less than two items"
         seq {
             resizeArray.[resizeArray.Count - 1], resizeArray.[0]
             for i = 0 to resizeArray.Count - 2 do
@@ -245,8 +225,9 @@ module ResizeArray =
     /// Not looped.
     /// The resulting seq is two elements shorter than the input ResizeArray.
     let windowed3 (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "windowed3"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3 input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "windowed3"
+        if resizeArray.Count < 3 then
+            fail resizeArray "windowed3 input has less than three items"
         seq {
             for i = 0 to resizeArray.Count - 3 do
                 resizeArray.[i], resizeArray.[i + 1], resizeArray.[i + 2]
@@ -255,8 +236,9 @@ module ResizeArray =
     /// Yields looped Seq of  from (last, first, second)  up to (second-last, last, first).
     /// The resulting seq has the same element count as the input ResizeArray.
     let prevThisNext (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "prevThisNext"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.prevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "prevThisNext"
+        if resizeArray.Count < 3 then
+            fail resizeArray "prevThisNext input has less than three items"
         seq {
             resizeArray.[resizeArray.Count - 1], resizeArray.[0], resizeArray.[1]
             for i = 0 to resizeArray.Count - 3 do
@@ -268,8 +250,9 @@ module ResizeArray =
     /// Not looped.
     /// The resulting seq is one element shorter than the input ResizeArray.
     let windowed2i (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "windowed2i"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed2i input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "windowed2i"
+        if resizeArray.Count < 2 then
+            fail resizeArray "windowed2i input has less than two items"
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 i, resizeArray.[i], resizeArray.[i + 1]
@@ -278,8 +261,9 @@ module ResizeArray =
     /// Yields looped Seq  from (0,first, second)  up to (lastIndex, last, first).
     /// The resulting seq has the same element count as the input ResizeArray.
     let iThisNext (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "iThisNext"
-        if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.iThisNext input has less than two items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "iThisNext"
+        if resizeArray.Count < 2 then
+            fail resizeArray "iThisNext input has less than two items"
         seq {
             for i = 0 to resizeArray.Count - 2 do
                 i, resizeArray.[i], resizeArray.[i + 1]
@@ -290,8 +274,9 @@ module ResizeArray =
     /// Not looped.
     /// The resulting seq is two elements shorter than the input ResizeArray.
     let windowed3i (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "windowed3i"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed3i input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "windowed3i"
+        if resizeArray.Count < 3 then
+            fail resizeArray "windowed3i input has less than three items"
         seq {
             for i = 0 to resizeArray.Count - 3 do
                 i + 1, resizeArray.[i], resizeArray.[i + 1], resizeArray.[i + 2]
@@ -300,8 +285,9 @@ module ResizeArray =
     /// Yields looped Seq from (1, last, first, second)  up to (lastIndex, second-last, last, first)
     /// The resulting seq has the same element count as the input ResizeArray.
     let iPrevThisNext (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "iPrevThisNext"
-        if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.iPrevThisNext input has less than three items:\r\n%s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "iPrevThisNext"
+        if resizeArray.Count < 3 then
+            fail resizeArray "iPrevThisNext input has less than three items"
         seq {
             0, resizeArray.[resizeArray.Count - 1], resizeArray.[0], resizeArray.[1]
 
@@ -329,7 +315,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The new result ResizeArray.</returns>
     let inline rotate amount (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "rotate"
+        if isNull resizeArray then nullExn "rotate"
         let r = ResizeArray(resizeArray.Count)
         for i = 0 to resizeArray.Count - 1 do
             r.Add <| resizeArray.[negIdxLooped (i - amount) resizeArray.Count]
@@ -342,7 +328,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The new result ResizeArray.</returns>
     let inline rotateUpTill (condition: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "rotateUpTill"
+        if isNull resizeArray then nullExn "rotateUpTill"
         if resizeArray.Count = 0 then
             resizeArray
         elif condition resizeArray.[0] then
@@ -350,7 +336,7 @@ module ResizeArray =
         else
             let rec findBackIdx i =
                 if i = -1 then
-                    ArgumentOutOfRangeException.Raise "ResizeArray.rotateUpTill: no item in the list meets the condition:\r\n%s" resizeArray.ToNiceStringLong
+                    fail resizeArray "rotateUpTill: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -371,7 +357,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The new result ResizeArray.</returns>
     let inline rotateUpTillLast (condition: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "rotateUpTillLast"
+        if isNull resizeArray then nullExn "rotateUpTillLast"
         if resizeArray.Count = 0 then
             resizeArray
         elif condition resizeArray.[resizeArray.Count - 1] then
@@ -379,7 +365,7 @@ module ResizeArray =
         else
             let rec findBackIdx i =
                 if i = -1 then
-                    ArgumentOutOfRangeException.Raise "ResizeArray.rotateUpTill: no item in the list meets the condition:\r\n%s" resizeArray.ToNiceStringLong
+                    fail resizeArray "rotateUpTill: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -402,7 +388,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The new result ResizeArray.</returns>
     let inline rotateDownTill (condition: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "rotateDownTill"
+        if isNull resizeArray then nullExn "rotateDownTill"
         if resizeArray.Count = 0 then
             resizeArray
         elif condition resizeArray.[0] then
@@ -411,7 +397,7 @@ module ResizeArray =
             let k = resizeArray.Count
             let rec findIdx i =
                 if i = k then
-                    ArgumentOutOfRangeException.Raise "ResizeArray.rotateDownTill: no item in the list meets the condition:\r\n%s" resizeArray.ToNiceStringLong
+                    fail resizeArray "rotateDownTill: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -432,7 +418,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The new result ResizeArray.</returns>
     let inline rotateDownTillLast (condition: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "rotateDownTillLast"
+        if isNull resizeArray then nullExn "rotateDownTillLast"
         if resizeArray.Count = 0 then
             resizeArray
         elif condition resizeArray.[0] then
@@ -441,7 +427,7 @@ module ResizeArray =
             let k = resizeArray.Count
             let rec findIdx i =
                 if i = k then
-                    ArgumentOutOfRangeException.Raise "ResizeArray.rotateDownTill: no item in the list meets the condition:\r\n%s" resizeArray.ToNiceStringLong
+                    fail resizeArray "rotateDownTill: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -464,7 +450,7 @@ module ResizeArray =
     /// see https://github.com/fable-compiler/Fable/issues/3718
     /// Use ResizeArray.equals2 or ResizeArray.equal3 for comparing nested ResizeArrays too.
     let inline equals (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray1 then nullExn "equals"
+        if isNull resizeArray1 then nullExn "equals"
         resizeArray1.IsEqualTo(resizeArray2)
 
     /// Structural equality comparison of ResizeArrays nested in ResizeArrays in .NET.
@@ -474,8 +460,8 @@ module ResizeArray =
     /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality
     /// see https://github.com/fable-compiler/Fable/issues/3718
     let equals2 (resizeArrays1: ResizeArray<ResizeArray<'T>>) (resizeArrays2: ResizeArray<ResizeArray<'T>>)=
-        if isNullSeq resizeArrays1 then nullExn "equals2 first"
-        if isNullSeq resizeArrays2 then nullExn "equals2 second"
+        if isNull resizeArrays1 then nullExn "equals2 first"
+        if isNull resizeArrays2 then nullExn "equals2 second"
         if Object.ReferenceEquals (resizeArrays1, resizeArrays2) then
             true
         elif resizeArrays1.Count <> resizeArrays2.Count then
@@ -498,8 +484,8 @@ module ResizeArray =
     /// When used in Fable (JavaScript) the ResizeArrays are always compared for full structural equality
     /// see https://github.com/fable-compiler/Fable/issues/3718
     let equals3 (resizeArrays1: ResizeArray<ResizeArray<ResizeArray<'T>>>) (resizeArrays2: ResizeArray<ResizeArray<ResizeArray<'T>>>) =
-        if isNullSeq resizeArrays1 then nullExn "equals3 first"
-        if isNullSeq resizeArrays2 then nullExn "equals3 second"
+        if isNull resizeArrays1 then nullExn "equals3 first"
+        if isNull resizeArrays2 then nullExn "equals3 second"
         if Object.ReferenceEquals (resizeArrays1, resizeArrays2) then
             true
         elif resizeArrays1.Count <> resizeArrays2.Count then
@@ -519,40 +505,40 @@ module ResizeArray =
     /// Returns true if the given ResizeArray has just one item.
     /// Same as  ResizeArray.hasOne
     let inline isSingleton (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "isSingleton"
+        if isNull resizeArray then nullExn "isSingleton"
         resizeArray.Count = 1
 
     /// Returns true if the given ResizeArray has just one item.
     /// Same as  ResizeArray.isSingleton
     let inline hasOne (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "hasOne"
+        if isNull resizeArray then nullExn "hasOne"
         resizeArray.Count = 1
 
     /// Returns true if the given ResizeArray is not empty.
     let inline isNotEmpty (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "isNotEmpty"
+        if isNull resizeArray then nullExn "isNotEmpty"
         resizeArray.Count <> 0
 
     /// Returns true if the given ResizeArray has count items.
     let inline hasItems count (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "hasItems"
+        if isNull resizeArray then nullExn "hasItems"
         resizeArray.Count = count
 
     /// Returns true if the given ResizeArray has equal or more than count items.
     let inline hasMinimumItems count (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "hasMinimumItems"
+        if isNull resizeArray then nullExn "hasMinimumItems"
         resizeArray.Count >= count
 
     /// Returns true if the given ResizeArray has equal or less than count items.
     let inline hasMaximumItems count (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "hasMaximumItems"
+        if isNull resizeArray then nullExn "hasMaximumItems"
         resizeArray.Count <= count
 
     /// Swap the values of two given indices in ResizeArray
     let inline swap i j (resizeArray: ResizeArray<'T>) : unit =
-        if isNullSeq resizeArray then nullExn "swap"
+        if isNull resizeArray then nullExn "swap"
         if i < 0 || j < 0 || i >= resizeArray.Count || j >= resizeArray.Count then
-            ArgumentOutOfRangeException.Raise "ResizeArray.swap: index i=%d and j=%d can't be less than 0 or bigger than last index %d " i j (resizeArray.Count - 1)
+            fail resizeArray $"swap: index i={i} and j={j} can't be less than 0 or bigger than last index {(resizeArray.Count-1)} "
         if i <> j then
             let ti = resizeArray.[i]
             resizeArray.[i] <- resizeArray.[j]
@@ -565,7 +551,8 @@ module ResizeArray =
 
         (*
         let inline simple cmpF (resizeArray:ResizeArray<'T>) =
-            if resizeArray.Count < 1 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.simple: Count must be at least one: %s"  resizeArray.ToNiceStringLong
+            if resizeArray.Count < 1 then
+                fail resizeArray "MinMax.simple: Count must be at least one"
             let mutable m = resizeArray.[0]
             for i=1 to resizeArray.Count-1 do
                 if cmpF resizeArray.[i] m then m <- resizeArray.[i]
@@ -573,7 +560,8 @@ module ResizeArray =
         *)
 
         let inline simple2 cmpF (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.simple2: Count must be at least two: %s" resizeArray.ToNiceStringLong
+            if resizeArray.Count < 2 then
+                fail resizeArray "MinMax.simple2: Count must be at least two"
             let mutable m1 = resizeArray.[0]
             let mutable m2 = resizeArray.[1]
             for i = 1 to resizeArray.Count - 1 do
@@ -617,7 +605,8 @@ module ResizeArray =
                 2, 1, 0
 
         let inline simple3 cmpF (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.simple3: Count must be at least three: %s" resizeArray.ToNiceStringLong
+            if resizeArray.Count < 3 then
+                fail resizeArray "MinMax.simple3: Count must be at least three"
             let e1 = resizeArray.[0]
             let e2 = resizeArray.[1]
             let e3 = resizeArray.[2]
@@ -637,7 +626,8 @@ module ResizeArray =
             m1, m2, m3
 
         let inline indexByFun cmpF func (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 1 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.indexByFun: Count must be at least one: %s" resizeArray.ToNiceStringLong
+            if resizeArray.Count < 1 then
+                fail resizeArray "MinMax.indexByFun: Count must be at least one"
             let mutable f = func resizeArray.[0]
             let mutable mf = f
             let mutable ii = 0
@@ -649,7 +639,8 @@ module ResizeArray =
             ii
 
         let inline index2ByFun cmpF func (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 2 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.index2ByFun: Count must be at least two: %s" resizeArray.ToNiceStringLong
+            if resizeArray.Count < 2 then
+                fail resizeArray "MinMax.index2ByFun: Count must be at least two"
             let mutable i1 = 0
             let mutable i2 = 1
             let mutable mf1 = func resizeArray.[i1]
@@ -668,7 +659,8 @@ module ResizeArray =
             i1, i2
 
         let inline index3ByFun (cmpOp: 'U -> 'U -> bool) (byFun: 'T -> 'U) (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 3 then ArgumentOutOfRangeException.Raise "ResizeArray.MinMax.index3ByFun: Count must be at least three: %s" resizeArray.ToNiceStringLong
+            if resizeArray.Count < 3 then
+                fail resizeArray "MinMax.index3ByFun: Count must be at least three"
             // sort first 3
             let mutable i1, i2, i3 = indexOfSort3By byFun cmpOp resizeArray.[0] resizeArray.[1] resizeArray.[2] // otherwise would fail on sorting first 3, test on ResizeArray([5;6;3;1;2;0])|> ResizeArray.max3
             let mutable e1 = byFun resizeArray.[i1]
@@ -705,19 +697,19 @@ module ResizeArray =
     /// <summary>Returns the index of the smallest of all elements of the ResizeArray, compared via Operators.max on the function result.</summary>
     /// <param name="projection">The function to transform the elements into a type supporting comparison.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The index of the smallest element.</returns>
     let inline minIndexBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
-        if isNullSeq resizeArray then nullExn "minIndexBy"
+        if isNull resizeArray then nullExn "minIndexBy"
         resizeArray |> MinMax.indexByFun (<) projection
 
     /// <summary>Returns the index of the greatest of all elements of the ResizeArray, compared via Operators.max on the function result.</summary>
     /// <param name="projection">The function to transform the elements into a type supporting comparison.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The index of the maximum element.</returns>
     let inline maxIndexBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : int =
-        if isNullSeq resizeArray then nullExn "maxIndexBy"
+        if isNull resizeArray then nullExn "maxIndexBy"
         resizeArray |> MinMax.indexByFun (>) projection
 
     [<Obsolete("use minIndexBy instead.")>]
@@ -729,13 +721,13 @@ module ResizeArray =
     /// Returns the smallest and the second smallest element of the ResizeArray.
     /// If they are equal then the order is kept
     let inline min2 resizeArray =
-        if isNullSeq resizeArray then nullExn "min2"
+        if isNull resizeArray then nullExn "min2"
         resizeArray |> MinMax.simple2 (<)
 
     /// Returns the biggest and the second biggest element of the ResizeArray.
     /// If they are equal then the  order is kept
     let inline max2 resizeArray =
-        if isNullSeq resizeArray then nullExn "max2"
+        if isNull resizeArray then nullExn "max2"
         resizeArray |> MinMax.simple2 (>)
 
     // TODO make consistent xml docstring on below functions:
@@ -744,7 +736,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min2By f resizeArray =
-        if isNullSeq resizeArray then nullExn "min2By"
+        if isNull resizeArray then nullExn "min2By"
         let i, ii = resizeArray |> MinMax.index2ByFun (<) f
         resizeArray.[i], resizeArray.[ii]
 
@@ -752,7 +744,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max2By f resizeArray =
-        if isNullSeq resizeArray then nullExn "max2By"
+        if isNull resizeArray then nullExn "max2By"
         let i, ii = resizeArray |> MinMax.index2ByFun (>) f
         resizeArray.[i], resizeArray.[ii]
 
@@ -760,14 +752,14 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min2IndicesBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "min2IndicesBy"
+        if isNull resizeArray then nullExn "min2IndicesBy"
         resizeArray |> MinMax.index2ByFun (<) f
 
     /// Returns the indices of the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max2IndicesBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "max2IndicesBy"
+        if isNull resizeArray then nullExn "max2IndicesBy"
         resizeArray |> MinMax.index2ByFun (>) f
 
     [<Obsolete("use min2IndicesBy instead.")>]
@@ -780,14 +772,14 @@ module ResizeArray =
     /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
     /// If they are equal then the order is kept
     let inline min3 resizeArray =
-        if isNullSeq resizeArray then nullExn "min3"
+        if isNull resizeArray then nullExn "min3"
         resizeArray |> MinMax.simple3 (<)
 
     /// Returns the biggest three elements of the ResizeArray.
     /// The first element is the biggest, the second is the second biggest and the third is the third biggest.
     /// If they are equal then the order is kept
     let inline max3 resizeArray =
-        if isNullSeq resizeArray then nullExn "max3"
+        if isNull resizeArray then nullExn "max3"
         resizeArray |> MinMax.simple3 (>)
 
     /// Returns the smallest three elements of the ResizeArray.
@@ -795,7 +787,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min3By f resizeArray =
-        if isNullSeq resizeArray then nullExn "min3By"
+        if isNull resizeArray then nullExn "min3By"
         let i, ii, iii = resizeArray |> MinMax.index3ByFun (<) f
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
@@ -804,7 +796,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max3By f resizeArray =
-        if isNullSeq resizeArray then nullExn "max3By"
+        if isNull resizeArray then nullExn "max3By"
         let i, ii, iii = resizeArray |> MinMax.index3ByFun (>) f
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
@@ -813,7 +805,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline min3IndicesBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "min3IndicesBy"
+        if isNull resizeArray then nullExn "min3IndicesBy"
         resizeArray |> MinMax.index3ByFun (<) f
 
     /// Returns the indices of the three biggest elements of the ResizeArray.
@@ -821,7 +813,7 @@ module ResizeArray =
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
     let inline max3IndicesBy f resizeArray =
-        if isNullSeq resizeArray then nullExn "max3IndicesBy"
+        if isNull resizeArray then nullExn "max3IndicesBy"
         resizeArray |> MinMax.index3ByFun (>) f
 
     [<Obsolete("use min3IndicesBy instead.")>]
@@ -833,13 +825,13 @@ module ResizeArray =
     /// Return the length or count of the collection.
     /// Same as ResizeArray.length
     let inline count (resizeArray: ResizeArray<'T>) : int =
-        if isNullSeq resizeArray then nullExn "count"
+        if isNull resizeArray then nullExn "count"
         resizeArray.Count
 
     /// Counts for how many items of the collection the predicate returns true.
     /// Same as ResizeArray.filter and then ResizeArray.length
     let inline countIf (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : int = //countBy is something else !!
-        if isNullSeq resizeArray then nullExn "countIf"
+        if isNull resizeArray then nullExn "countIf"
         let mutable k = 0
         for i = 0 to resizeArray.Count - 1 do
             if predicate resizeArray.[i] then k <- k + 1
@@ -847,13 +839,13 @@ module ResizeArray =
 
     /// Adds an object to the end of the ResizeArray.
     let inline add (item:'T) (resizeArray: ResizeArray<'T>) : unit =
-        if isNullSeq resizeArray then nullExn "add"
+        if isNull resizeArray then nullExn "add"
         resizeArray.Add item
 
     /// Builds a new ResizeArray from the given Array.
     /// (Use the asResizeArray function if you want to just cast an Array to a ResizeArray in Fable-JavaScript)
     let inline ofArray (arr: 'T[]) : ResizeArray<'T> =
-        if isNullSeq arr then nullExn "ofArray"
+        if isNull arr then nullExn "ofArray"
         let l = ResizeArray(arr.Length)
         for i = 0 to arr.Length - 1 do
             l.Add arr.[i]
@@ -863,7 +855,7 @@ module ResizeArray =
     /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
     [<Obsolete("Use Array.asResizeArray instead")>]
     let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
-        if isNullSeq arr then nullExn "asResizeArray"
+        if isNull arr then nullExn "asResizeArray"
         #if FABLE_COMPILER_JAVASCRIPT
         unbox arr
         #else
@@ -875,7 +867,7 @@ module ResizeArray =
 
     /// Build a ResizeArray from the given IList Interface.
     let inline ofIList (arr: IList<'T>) : ResizeArray<'T> =
-        if isNullSeq arr then nullExn "ofIList"
+        if isNull arr then nullExn "ofIList"
         let l = ResizeArray(arr.Count)
         for i = 0 to arr.Count - 1 do
             l.Add arr.[i]
@@ -885,14 +877,14 @@ module ResizeArray =
     /// This function always allocates a new Array and copies the elements.
     /// (Use the asArray function if you want to just cast a ResizeArray to an Array in Fable-JavaScript)
     let inline toArray (resizeArray: ResizeArray<'T>) : 'T[] =
-        if isNullSeq resizeArray then nullExn "toArray"
+        if isNull resizeArray then nullExn "toArray"
         resizeArray.ToArray()
 
     /// Return a fixed-length Array containing the elements of the input ResizeArray as a copy.
     /// When this function is used in Fable (JavaScript) the ResizeArray is just casted to an Array.
     /// In .NET a new Array is still allocated and the elements are copied.
     let inline asArray (resizeArray: ResizeArray<'T>) : 'T[] =
-        if isNullSeq resizeArray then nullExn "asArray"
+        if isNull resizeArray then nullExn "asArray"
         #if FABLE_COMPILER_JAVASCRIPT
         unbox resizeArray
         #else
@@ -904,7 +896,7 @@ module ResizeArray =
     /// given function returns <c>Choice1Of2</c> or <c>Choice2Of2</c>, respectively. This function is similar to
     /// <c>ResizeArray.partition</c>, but it allows the returned collections to have different element types.</summary>
     let inline partitionBy (partitioner: 'T -> Choice<'U1,'U2>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U1> * ResizeArray<'U2> =
-        if isNullSeq resizeArray then nullExn "partitionBy"
+        if isNull resizeArray then nullExn "partitionBy"
         let results1 = ResizeArray()
         let results2 = ResizeArray()
         for i = 0 to resizeArray.Count - 1 do
@@ -921,7 +913,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Three ResizeArrays. </returns>
     let partition3By (partitioner: 'T -> Choice<'U1,'U2,'U3>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U1> * ResizeArray<'U2> * ResizeArray<'U3> =
-        if isNullSeq resizeArray then nullExn "partition3By"
+        if isNull resizeArray then nullExn "partition3By"
         let results1 = ResizeArray()
         let results2 = ResizeArray()
         let results3 = ResizeArray()
@@ -941,7 +933,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Four ResizeArrays. </returns>
     let partition4By (partitioner: 'T -> Choice<'U1,'U2,'U3,'U4>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U1> * ResizeArray<'U2> * ResizeArray<'U3> * ResizeArray<'U4> =
-        if isNullSeq resizeArray then nullExn "partition4By"
+        if isNull resizeArray then nullExn "partition4By"
         let results1 = ResizeArray()
         let results2 = ResizeArray()
         let results3 = ResizeArray()
@@ -962,7 +954,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Five ResizeArrays. </returns>
     let partition5By (partitioner: 'T -> Choice<'U1,'U2,'U3,'U4,'U5>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U1> * ResizeArray<'U2> * ResizeArray<'U3> * ResizeArray<'U4> * ResizeArray<'U5> =
-        if isNullSeq resizeArray then nullExn "partition5By"
+        if isNull resizeArray then nullExn "partition5By"
         let results1 = ResizeArray()
         let results2 = ResizeArray()
         let results3 = ResizeArray()
@@ -986,7 +978,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Three ResizeArrays. </returns>
     let partition3 (predicate1: 'T -> bool) (predicate2: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "partition3"
+        if isNull resizeArray then nullExn "partition3"
         let p1True = ResizeArray()
         let p2True = ResizeArray()
         let allFalse = ResizeArray()
@@ -1010,7 +1002,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Four ResizeArrays. </returns>
     let partition4 (predicate1: 'T -> bool) (predicate2: 'T -> bool) (predicate3: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "partition4"
+        if isNull resizeArray then nullExn "partition4"
         let p1True = ResizeArray()
         let p2True = ResizeArray()
         let p3True = ResizeArray()
@@ -1038,7 +1030,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>Five ResizeArrays. </returns>
     let partition5 (predicate1: 'T -> bool) (predicate2: 'T -> bool) (predicate3: 'T -> bool) (predicate4: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> * ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "partition5"
+        if isNull resizeArray then nullExn "partition5"
         let p1True = ResizeArray()
         let p2True = ResizeArray()
         let p3True = ResizeArray()
@@ -1057,14 +1049,14 @@ module ResizeArray =
         /// Applies a function to List
     /// If resulting List meets the resultPredicate it is returned, otherwise the original input is returned.
     let inline applyIfResult (resultPredicate: ResizeArray<'T> -> bool) (transform: ResizeArray<'T> -> ResizeArray<'T>) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "applyIfResult"
+        if isNull resizeArray then nullExn "applyIfResult"
         let r = transform resizeArray
         if resultPredicate r then r else resizeArray
 
     /// Applies a function to List if it meets the inputPredicate, otherwise just returns input.
     /// If resulting List meets the resultPredicate it is returned, otherwise original input is returned.
     let inline applyIfInputAndResult (inputPredicate: ResizeArray<'T> -> bool) (resultPredicate: ResizeArray<'T> -> bool) (transform: ResizeArray<'T> -> ResizeArray<'T>) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "applyIfInputAndResult"
+        if isNull resizeArray then nullExn "applyIfInputAndResult"
         if inputPredicate resizeArray then
             let r = transform resizeArray
             if resultPredicate r then r else resizeArray
@@ -1075,7 +1067,7 @@ module ResizeArray =
     /// Each element that exists more than once is only returned once.
     /// Returned order is by first occurrence of first duplicate.
     let duplicates (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "duplicates"
+        if isNull resizeArray then nullExn "duplicates"
         let h = HashSet<'T>()
         let t = HashSet<'T>()
         // first Add should be false, second Add true, to recognize the first occurrence of a duplicate:
@@ -1085,11 +1077,34 @@ module ResizeArray =
     /// Each element that exists more than once is only returned once.
     /// Returned order is by first occurrence of first duplicate.
     let duplicatesBy (f: 'T -> 'U) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "duplicatesBy"
+        if isNull resizeArray then nullExn "duplicatesBy"
         let h = HashSet<'U>()
         let t = HashSet<'U>()
         // first Add should be false, second Add true, to recognize the first occurrence of a duplicate:
         resizeArray.FindAll(System.Predicate(fun x -> let y = f x in if h.Add y then false else t.Add y))
+
+
+    /// <summary>Returns a new collection containing only the elements of the collection
+    /// for which the given predicate run on the index returns <c>true</c>.</summary>
+    /// <param name="predicate">The function to test the current index.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>A ResizeArray containing the elements for which the given predicate returns true.</returns>
+    let inline filteri (predicate: int -> bool) (resizeArray: ResizeArray<'T>) =
+        if isNull resizeArray then nullExn "filteri"
+        let res = ResizeArray()
+        for i = 0 to resizeArray.Count - 1 do
+            if predicate i then
+                res.Add(resizeArray.[i])
+        res
+
+
+
+
+
+
+
+
+
 
     //--------------------------------------------------------------------------------------------------------------------
     // ------------- implementation adapted form FSharp.Core Array module: ------------------------------------------------
@@ -1099,6 +1114,9 @@ module ResizeArray =
     //               https://github.com/jack-pappas/ExtCore/blob/master/ExtCore/Collections.ResizeArray.fs
     //               https://github.com/dotnet/fsharp/tree/master/src/utils
     //---------------------------------------------------------------------------------------------------------------------
+
+
+
 
     /// a StructBox for keys in case the key type is itself a type using null as a representation
     [<Struct; NoComparison; NoEquality>]
@@ -1115,8 +1133,8 @@ module ResizeArray =
     /// <param name="resizeArray2">The second input ResizeArray.</param>
     /// <returns>The resulting ResizeArray of pairs of length: resizeArray1.Count * resizeArray2.Count.</returns>
     let allPairs (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) : ResizeArray<'T * 'U> =
-        if isNullSeq resizeArray1 then nullExn "allPairs first"
-        if isNullSeq resizeArray2 then nullExn "allPairs second"
+        if isNull resizeArray1 then nullExn "allPairs first"
+        if isNull resizeArray2 then nullExn "allPairs second"
         let res = ResizeArray(resizeArray1.Count * resizeArray2.Count)
         for i = 0 to resizeArray1.Count - 1 do
             for j = 0 to resizeArray2.Count - 1 do
@@ -1132,8 +1150,8 @@ module ResizeArray =
     /// <param name="resizeArray2">The input ResizeArray that will be at the end.</param>
     /// <returns>The resulting ResizeArray of length: resizeArray1.Count + resizeArray2.Count..</returns>
     let inline append (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'T>) =
-        if isNullSeq resizeArray1 then nullExn "append first"
-        if isNullSeq resizeArray2 then nullExn "append second"
+        if isNull resizeArray1 then nullExn "append first"
+        if isNull resizeArray2 then nullExn "append second"
         let res = resizeArray1.Clone()
         res.AddRange(resizeArray2)
         res
@@ -1145,19 +1163,20 @@ module ResizeArray =
     /// <param name="resizeArray1">The input ResizeArray that will be at the beginning.</param>
     /// <returns>The resulting ResizeArray of length: resizeArray2.Count + resizeArray1.Count..</returns>
     let inline prepend (resizeArray2: ResizeArray<'T>) (resizeArray1: ResizeArray<'T>) =
-        if isNullSeq resizeArray1 then nullExn "prepend first"
-        if isNullSeq resizeArray2 then nullExn "prepend second"
+        if isNull resizeArray1 then nullExn "prepend first"
+        if isNull resizeArray2 then nullExn "prepend second"
         let res = resizeArray1.Clone()
         res.AddRange(resizeArray2)
         res
 
     /// <summary>Returns the average of the elements in the ResizeArray.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <c>ResizeArray</c> is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when <c>ResizeArray</c> is empty.</exception>
     /// <returns>The average of the elements in the ResizeArray.</returns>
     let inline average (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "average"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.average: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "average"
+        if resizeArray.Count = 0 then
+            fail resizeArray "average: Count must be at least one"
         let mutable acc = LanguagePrimitives.GenericZero< ^T>
         for i = 0 to resizeArray.Count - 1 do
             acc <- Checked.(+) acc resizeArray.[i]
@@ -1167,11 +1186,12 @@ module ResizeArray =
     /// <summary>Returns the average of the elements generated by applying the function to each element of the ResizeArray.</summary>
     /// <param name="projection">The function to transform the ResizeArray elements before averaging.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <c>ResizeArray</c> is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when <c>ResizeArray</c> is empty.</exception>
     /// <returns>The computed average.</returns>
     let inline averageBy (projection: 'T -> ^Key) (resizeArray: ResizeArray<'T>) : ^Key =
-        if isNullSeq resizeArray then nullExn "averageBy"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.averageBy: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "averageBy"
+        if resizeArray.Count = 0 then
+            fail resizeArray "averageBy: Count must be at least one"
         let mutable acc = LanguagePrimitives.GenericZero< ^Key>
         for i = 0 to resizeArray.Count - 1 do
             acc <- Checked.(+) acc (projection resizeArray.[i])
@@ -1184,7 +1204,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray of results.</returns>
     let inline choose (chooser: 'T -> 'U option) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-        if isNullSeq resizeArray then nullExn "choose"
+        if isNull resizeArray then nullExn "choose"
         let result = ResizeArray()
         for i = 0 to resizeArray.Count - 1 do
             match chooser resizeArray.[i] with
@@ -1196,10 +1216,11 @@ module ResizeArray =
     /// <param name="chunkSize">The maximum size of each chunk.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray divided into chunks.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <c>chunkSize</c> is not positive.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when <c>chunkSize</c> is not positive.</exception>
     let chunkBySize chunkSize (resizeArray: ResizeArray<'T>) : ResizeArray<ResizeArray<'T>> =
-        if isNullSeq resizeArray then nullExn "chunkBySize"
-        if chunkSize <= 0 then ArgumentOutOfRangeException.Raise "ResizeArray.chunkBySize: chunkSize %d must be bigger than 0" chunkSize
+        if isNull resizeArray then nullExn "chunkBySize"
+        if chunkSize <= 0 then
+            fail resizeArray $"chunkBySize: chunkSize {chunkSize} must be bigger than 0"
         let len = resizeArray.Count
         if len = 0 then
             ResizeArray(0)
@@ -1221,7 +1242,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The concatenation of the sub-ResizeArrays.</returns>
     let collect (mapping: 'T -> ResizeArray<'U>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-        if isNullSeq resizeArray then nullExn "collect"
+        if isNull resizeArray then nullExn "collect"
         //let collect (mapping: 'T -> seq<'U>)  (resizeArray: ResizeArray<'T>) : ResizeArray<'U> = // tests don't pass like that
         let res = ResizeArray(resizeArray.Count)
         for i = 0 to resizeArray.Count - 1 do
@@ -1240,8 +1261,8 @@ module ResizeArray =
     /// ResizeArrays, 1 is returned if the first ResizeArray is longer, 0 is returned if they are equal in
     /// length, and -1 is returned when the second ResizeArray is longer.</returns>
     let inline compareWith ( (*[<InlineIfLambda>]*) comparer: 'T -> 'T -> int) (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'T>) =
-        if isNullSeq resizeArray1 then nullExn "compareWith first"
-        if isNullSeq resizeArray2 then nullExn "compareWith second"
+        if isNull resizeArray1 then nullExn "compareWith first"
+        if isNull resizeArray2 then nullExn "compareWith second"
         let length1 = resizeArray1.Count
         let length2 = resizeArray2.Count
         let mutable i = 0
@@ -1264,7 +1285,7 @@ module ResizeArray =
     /// <param name="resizeArrays">The input sequence of ResizeArrays.</param>
     /// <returns>The concatenation of the sequence of input ResizeArrays.</returns>
     let concat (resizeArrays: ResizeArray<ResizeArray<'T>>) : ResizeArray<'T> =
-        if isNullSeq resizeArrays then nullExn "concat"
+        if isNull resizeArrays then nullExn "concat"
         //let concat (resizeArrays: ResizeArray<ResizeArray<'T>>) : ResizeArray<'T> =  // test don't pass with this
         //if resizeArrays.Count = 0 then
         if resizeArrays.Count = 0 then
@@ -1273,7 +1294,7 @@ module ResizeArray =
             let res = ResizeArray() //resizeArrays.[0].Clone()
             for i = 0 to resizeArrays.Count - 1 do
                 let r = resizeArrays.[i]
-                if isNullSeq r then nullExn "concat inner"
+                if isNull r then nullExn "concat inner"
                 res.AddRange(r)
             //for i=1 to resizeArrays.(resizeArray.Count-1) do res.AddRange(resizeArrays.[i])
             res
@@ -1283,7 +1304,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if the input ResizeArray contains the specified element; false otherwise.</returns>
     let inline contains value (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "contains"
+        if isNull resizeArray then nullExn "contains"
         resizeArray.Contains(value)
 
     /// <summary>Builds a new ResizeArray that contains the elements of the given ResizeArray.
@@ -1291,7 +1312,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A copy of the input ResizeArray.</returns>
     let inline copy (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "copy"
+        if isNull resizeArray then nullExn "copy"
         resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
 
     /// <summary>Builds a new ResizeArray that contains the elements of the given ResizeArray.
@@ -1299,7 +1320,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A copy of the input ResizeArray.</returns>
     let inline clone (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "clone"
+        if isNull resizeArray then nullExn "clone"
         resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
 
 
@@ -1309,15 +1330,20 @@ module ResizeArray =
     /// <param name="target">The target ResizeArray.</param>
     /// <param name="targetStartIndex">The starting index of the target ResizeArray.</param>
     /// <param name="count">The number of elements to copy.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when any of sourceIndex,targetStartIndex or count are negative, or when there aren't enough elements in source or target.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when any of sourceIndex,targetStartIndex or count are negative, or when there aren't enough elements in source or target.</exception>
     let inline blit (source: ResizeArray<'T>) (sourceIndex: int) (target: ResizeArray<'T>) (targetStartIndex: int) (count: int) : unit =
-        if isNullSeq source then nullExn "blit source"
-        if isNullSeq target then nullExn "blit target"
-        if sourceIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit: sourceIndex %d cannot be negative." sourceIndex
-        if targetStartIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit:targetStartIndex %d cannot be negative." targetStartIndex
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit: count %d cannot be negative." count
-        if source.Count < sourceIndex + count then ArgumentOutOfRangeException.Raise "ResizeArray.blit: source.Count %d is smaller than  sourceIndex %d + count %d." source.Count sourceIndex count
-        if target.Count < targetStartIndex + count then ArgumentOutOfRangeException.Raise "ResizeArray.blit: target.Count %d is smaller than  targetStartIndex %d + count %d." target.Count targetStartIndex count
+        if isNull source then nullExn "blit source"
+        if isNull target then nullExn "blit target"
+        if sourceIndex < 0 then
+            fail source $"blit: sourceIndex {sourceIndex} cannot be negative."
+        if targetStartIndex < 0 then
+            fail target $"blit:targetStartIndex {targetStartIndex} cannot be negative."
+        if count < 0 then
+            fail source $"blit: count {count} cannot be negative."
+        if source.Count < sourceIndex + count then
+            fail source $"blit: source.Count {source.Count} is smaller than  sourceIndex {sourceIndex} + count {count}."
+        if target.Count < targetStartIndex + count then
+            fail target $"blit: target.Count {target.Count} is smaller than  targetStartIndex {targetStartIndex} + count {count}."
         let mutable j = targetStartIndex
         for i = sourceIndex to sourceIndex + count - 1 do
             target.[j] <- source.[i]
@@ -1330,19 +1356,24 @@ module ResizeArray =
     /// <param name="target">The target ResizeArray.</param>
     /// <param name="targetStartIndex">The starting index of the target ResizeArray.</param>
     /// <param name="count">The number of elements to copy.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when any of sourceIndex, targetStartIndex or count are negative, or when there aren't enough elements in source.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when any of sourceIndex, targetStartIndex or count are negative, or when there aren't enough elements in source.</exception>
     let inline blitExtend (source: ResizeArray<'T>) (sourceIndex: int) (target: ResizeArray<'T>) (targetStartIndex: int) (count: int) : unit =
-        if isNullSeq source then nullExn "blitExtend source"
-        if isNullSeq target then nullExn "blitExtend target"
-        if sourceIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit: sourceIndex %d cannot be negative." sourceIndex
-        if targetStartIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit: targetStartIndex %d cannot be negative." targetStartIndex
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.blit: count %d cannot be negative." count
-        if source.Count < sourceIndex + count then ArgumentOutOfRangeException.Raise "ResizeArray.blit: source.Count %d is smaller than  sourceIndex %d + count %d." source.Count sourceIndex count
-        if target.Count < targetStartIndex then ArgumentOutOfRangeException.Raise "ResizeArray.blit: target.Count %d is smaller than  targetStartIndex %d." target.Count targetStartIndex
+        if isNull source then nullExn "blitExtend source"
+        if isNull target then nullExn "blitExtend target"
+        if sourceIndex < 0 then
+            fail source $"blit: sourceIndex {sourceIndex} cannot be negative."
+        if targetStartIndex < 0 then
+            fail target $"blit: targetStartIndex {targetStartIndex} cannot be negative."
+        if count < 0 then
+            fail source $"blit: count {count} cannot be negative."
+        if source.Count < sourceIndex + count then
+            fail source $"blit: source.Count {source.Count} is smaller than  sourceIndex {sourceIndex} + count {count}."
+        if target.Count < targetStartIndex then
+            fail target $"blit: target.Count {target.Count} is smaller than  targetStartIndex {targetStartIndex}."
         let mutable j = targetStartIndex
-        let tlasti = target.Count - 1
+        let tLasti = target.Count - 1
         for i = sourceIndex to sourceIndex + count - 1 do
-            if j > tlasti then
+            if j > tLasti then
                 target.Add(source.[i]) //increases in size if needed
             else
                 target.[j] <- source.[i]
@@ -1380,7 +1411,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let countBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'Key * int> =
-        if isNullSeq resizeArray then nullExn "countBy"
+        if isNull resizeArray then nullExn "countBy"
         #if FABLE_COMPILER
         countByImpl StructBox<'Key>.Comparer (fun t -> StructBox(projection t)) (fun sb -> sb.Value) resizeArray
         #else
@@ -1397,9 +1428,10 @@ module ResizeArray =
     /// <param name="count">The length of the ResizeArray to create.</param>
     /// <param name="value">The value for the elements.</param>
     /// <returns>The created ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when count is negative.</exception>
     let create (count: int) (value: 'T) =
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.create: count %d cannot be negative." count
+        if count < 0 then
+            failSimpel $"create: count ({count}) cannot be negative."
         let resizeArray = ResizeArray(count)
         for i = 0 to count - 1 do
             resizeArray.Add value
@@ -1412,7 +1444,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let distinct (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "distinct"
+        if isNull resizeArray then nullExn "distinct"
         let temp = ResizeArray()
         let hashSet = HashSet<'T>(HashIdentity.Structural<'T>)
         for i = 0 to resizeArray.Count - 1 do
@@ -1429,7 +1461,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let distinctBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "distinctBy"
+        if isNull resizeArray then nullExn "distinctBy"
         if resizeArray.Count < 2 then
             resizeArray.Clone() // 0 or 1 item, just clone
         else
@@ -1453,13 +1485,13 @@ module ResizeArray =
     /// <summary>Returns the only element of the ResizeArray.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The only element of the ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input does not have precisely one element.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input does not have precisely one element.</exception>
     let exactlyOne (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "exactlyOne"
+        if isNull resizeArray then nullExn "exactlyOne"
         if resizeArray.Count = 1 then
             resizeArray.[0]
         else
-            ArgumentOutOfRangeException.Raise "ResizeArray.exactlyOne: ResizeArray has %d elements, not one." resizeArray.Count
+            fail resizeArray $"exactlyOne: ResizeArray has {resizeArray.Count} elements, not one."
 
 
     /// <summary>Returns a new list with the distinct elements of the input ResizeArray which do not appear in the itemsToExclude sequence.
@@ -1469,8 +1501,8 @@ module ResizeArray =
     /// <param name="resizeArray">A ResizeArray whose elements that are not also in itemsToExclude will be returned.</param>
     /// <returns>A ResizeArray that contains the distinct elements of <c>ResizeArray</c> that do not appear in <c>itemsToExclude</c>.</returns>
     let except (itemsToExclude: seq<'T>) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "except resizeArray"
-        if isNullSeq itemsToExclude then nullExn "except itemsToExclude"
+        if isNull resizeArray then nullExn "except resizeArray"
+        if isNull itemsToExclude then nullExn "except itemsToExclude"
         if resizeArray.Count = 0 then
             resizeArray
         else
@@ -1491,7 +1523,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>false</c> if any result from <c>predicate</c> is <c>true</c>.</returns>
     let notExists (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "notExists"
+        if isNull resizeArray then nullExn "notExists"
         not (resizeArray.Exists(System.Predicate predicate))
 
 
@@ -1504,7 +1536,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if any result from <c>predicate</c> is <c>true</c>.</returns>
     let exists (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : bool =
-        if isNullSeq resizeArray then nullExn "exists"
+        if isNull resizeArray then nullExn "exists"
         resizeArray.Exists(System.Predicate predicate)
 
 
@@ -1512,18 +1544,19 @@ module ResizeArray =
     /// The predicate is applied to matching elements in the two collections up to the lesser of the
     /// two lengths of the collections. If any application returns true then the overall result is
     /// true and no further elements are tested. Otherwise, if one collections is longer
-    /// than the other then the <c>ArgumentOutOfRangeException</c> exception is raised.
+    /// than the other then the <c>ArgumentException</c> exception is raised.
     /// Otherwise, false is returned.</summary>
     /// <param name="predicate">The function to test the input elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
     /// <returns><c>true</c> if any result from <c>predicate</c> is <c>true</c>.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     let exists2 (predicate: 'T -> 'U -> bool) (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) : bool =
-        if isNullSeq resizeArray1 then nullExn "exists2 first"
-        if isNullSeq resizeArray2 then nullExn "exists2 second"
+        if isNull resizeArray1 then nullExn "exists2 first"
+        if isNull resizeArray2 then nullExn "exists2 second"
         let len1 = resizeArray1.Count
-        if len1 <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.exists2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if len1 <> resizeArray2.Count then
+            fail resizeArray1 $"exists2: count of resizeArray1 {len1} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(predicate)
         let rec loop i =
             i < len1 && (f.Invoke(resizeArray1.[i], resizeArray2.[i]) || loop (i + 1))
@@ -1534,12 +1567,15 @@ module ResizeArray =
     /// <param name="startIndex">The index of the first element to set.</param>
     /// <param name="count">The number of elements to set.</param>
     /// <param name="value">The value to set.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when either startIndex or count is negative.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when either startIndex or count is negative.</exception>
     let fill (target: ResizeArray<'T>) (startIndex: int) (count: int) (value: 'T) =
-        if isNullSeq target then nullExn "fill"
-        if startIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.fill: startIndex %d cannot be negative." startIndex
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.fill: count %d cannot be negative." count
-        if target.Count < startIndex then ArgumentOutOfRangeException.Raise "ResizeArray.fill: target.Count %d is smaller than  startIndex %d." target.Count startIndex
+        if isNull target then nullExn "fill"
+        if startIndex < 0 then
+            fail target $"fill: startIndex {startIndex} cannot be negative."
+        if count < 0 then
+            fail target $"fill: count {count} cannot be negative."
+        if target.Count < startIndex then
+            fail target $"fill: target.Count {target.Count} is smaller than  startIndex {startIndex}."
         let tLasti = target.Count - 1
         for j = startIndex to startIndex + count - 1 do
             if j > tLasti then
@@ -1553,7 +1589,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A ResizeArray containing the elements for which the given predicate returns true.</returns>
     let inline filter (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "filter"
+        if isNull resizeArray then nullExn "filter"
         // TODO replace with F# implementation using [<InlineIfLambda>] for performance?? Test on non Lambdas too.
         resizeArray.FindAll(System.Predicate predicate)
 
@@ -1565,10 +1601,10 @@ module ResizeArray =
     /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">Thrown if <c>predicate</c> never returns true.</exception>
     /// <returns>The first element for which <c>predicate</c> returns true.</returns>
     let find (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "find"
+        if isNull resizeArray then nullExn "find"
         let elementIndex = resizeArray.FindIndex(System.Predicate predicate)
         match elementIndex with
-        | -1 -> KeyNotFoundException.Raise "ResizeArray.find did not find for predicate in ResizeArray of %d items." resizeArray.Count
+        | -1 -> failKey resizeArray "find did not find for given predicate in"
         | index -> resizeArray.[index]
 
     /// <summary>Returns the last element for which the given function returns <c>true</c>.
@@ -1578,10 +1614,10 @@ module ResizeArray =
     /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">Thrown if <c>predicate</c> never returns true.</exception>
     /// <returns>The last element for which <c>predicate</c> returns true.</returns>
     let findBack (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "findBack"
+        if isNull resizeArray then nullExn "findBack"
         let rec loop i =
             if i < 0 then
-                KeyNotFoundException.Raise "ResizeArray.findBack: not found in %d items %s" resizeArray.Count resizeArray.ToNiceStringLong
+                failKey resizeArray "findBack did not find for given predicate in"
             else if predicate resizeArray.[i] then
                 resizeArray.[i]
             else
@@ -1589,17 +1625,18 @@ module ResizeArray =
         loop (resizeArray.Count - 1)
 
 
-    /// <summary>Returns the index of the first element in the ResizeArray that satisfies the given predicate. Raise <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if
+    /// <summary>Returns the index of the first element in the ResizeArray that satisfies the given predicate.
+    /// Raises <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if
     /// none of the elements satisfy the predicate.</summary>
     /// <param name="predicate">The function to test the input elements.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">Thrown if <c>predicate</c> never returns true.</exception>
     /// <returns>The index of the first element in the ResizeArray that satisfies the given predicate.</returns>
     let findIndex (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "findIndex"
+        if isNull resizeArray then nullExn "findIndex"
         let elementIndex = resizeArray.FindIndex(System.Predicate predicate)
         match elementIndex with
-        | -1 -> KeyNotFoundException.Raise "ResizeArray.findIndex did not find for predicate in ResizeArray of %d items." resizeArray.Count
+        | -1 -> failKey resizeArray "findIndex did not find for given predicate in"
         | index -> index
 
 
@@ -1611,10 +1648,10 @@ module ResizeArray =
     /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">Thrown if <c>predicate</c> never returns true.</exception>
     /// <returns>The index of the last element in the ResizeArray that satisfies the given predicate.</returns>
     let findIndexBack (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "findIndexBack"
+        if isNull resizeArray then nullExn "findIndexBack"
         let rec go n =
             if n < 0 then
-                KeyNotFoundException.Raise "ResizeArray.findIndexBack: not found in %s" resizeArray.ToNiceStringLong
+                failKey resizeArray "findIndexBack did not find for given predicate in"
             elif predicate resizeArray.[n] then
                 n
             else
@@ -1630,7 +1667,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The final state.</returns>
     let fold<'T, 'State> (folder: 'State -> 'T -> 'State) (state: 'State) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "fold"
+        if isNull resizeArray then nullExn "fold"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(folder)
         let mutable state = state
         for i = 0 to resizeArray.Count - 1 do
@@ -1641,18 +1678,19 @@ module ResizeArray =
     /// <summary>Applies a function to pairs of elements drawn from the two collections,
     /// left-to-right, threading an accumulator argument
     /// through the computation. The two input
-    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="folder">The function to update the state given the input elements.</param>
     /// <param name="state">The initial state.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The final state.</returns>
     let fold2<'T1, 'T2, 'State> folder (state: 'State) (resizeArray1: 'T1 ResizeArray) (resizeArray2: 'T2 ResizeArray) =
-        if isNullSeq resizeArray1 then nullExn "fold2 first"
-        if isNullSeq resizeArray2 then nullExn "fold2 second"
-        if resizeArray1.Count <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.fold2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if isNull resizeArray1 then nullExn "fold2 first"
+        if isNull resizeArray2 then nullExn "fold2 second"
+        if resizeArray1.Count <> resizeArray2.Count then
+            fail resizeArray1  $"fold2: count of resizeArray1 {resizeArray1.Count} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(folder)
         let mutable state = state
         for i = 0 to resizeArray1.Count - 1 do
@@ -1668,7 +1706,7 @@ module ResizeArray =
     /// <param name="state">The initial state.</param>
     /// <returns>The state object after the folding function is applied to each element of the ResizeArray.</returns>
     let foldBack<'T, 'State> (folder: 'T -> 'State -> 'State) (resizeArray: ResizeArray<'T>) (state: 'State) =
-        if isNullSeq resizeArray then nullExn "foldBack"
+        if isNull resizeArray then nullExn "foldBack"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(folder)
         let mutable res = state
         for i = resizeArray.Count - 1 downto 0 do
@@ -1678,19 +1716,20 @@ module ResizeArray =
 
     /// <summary>Apply a function to pairs of elements drawn from the two collections, right-to-left,
     /// threading an accumulator argument through the computation. The two input
-    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="folder">The function to update the state given the input elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
     /// <param name="state">The initial state.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The final state.</returns>
     let foldBack2<'T1, 'T2, 'State> folder (resizeArray1: 'T1 ResizeArray) (resizeArray2: 'T2 ResizeArray) (state: 'State) =
-        if isNullSeq resizeArray1 then nullExn "foldBack2 first"
-        if isNullSeq resizeArray2 then nullExn "foldBack2 second"
+        if isNull resizeArray1 then nullExn "foldBack2 first"
+        if isNull resizeArray2 then nullExn "foldBack2 second"
         let len = resizeArray1.Count
-        if len <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.foldBack2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if len <> resizeArray2.Count then
+            fail resizeArray1 $"foldBack2: count of resizeArray1 {len} does not match resizeArray2 {resizeArray2.Count}."
         let mutable res = state
         let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(folder)
         for i = len - 1 downto 0 do
@@ -1706,7 +1745,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if all of the ResizeArray elements satisfy the predicate.</returns>
     let forall (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "forall"
+        if isNull resizeArray then nullExn "forall"
         #if FABLE_COMPILER
         let len = resizeArray.Count
         let rec loop i =
@@ -1721,18 +1760,19 @@ module ResizeArray =
     /// The predicate is applied to matching elements in the two collections up to the lesser of the
     /// two lengths of the collections. If any application returns false then the overall result is
     /// false and no further elements are tested. Otherwise, if one collection is longer
-    /// than the other then the <c>ArgumentOutOfRangeException</c> exception is raised.
+    /// than the other then the <c>ArgumentException</c> exception is raised.
     /// Otherwise, true is returned.</summary>
     /// <param name="predicate">The function to test the input elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns><c>true</c> if all of the ResizeArray elements satisfy the predicate.</returns>
     let forall2 (predicate: 'T -> 'U -> bool) (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) : bool =
-        if isNullSeq resizeArray1 then nullExn "forall2 first"
-        if isNullSeq resizeArray2 then nullExn "forall2 second"
+        if isNull resizeArray1 then nullExn "forall2 first"
+        if isNull resizeArray2 then nullExn "forall2 second"
         let len1 = resizeArray1.Count
-        if len1 <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.forall2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if len1 <> resizeArray2.Count then
+            fail resizeArray1 $"forall2: count of resizeArray1 {len1} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(predicate)
         let rec loop i =
             i >= len1 || (f.Invoke(resizeArray1.[i], resizeArray2.[i]) && loop (i + 1))
@@ -1744,13 +1784,15 @@ module ResizeArray =
     /// <param name="count">The length of the sub ResizeArray.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The created sub ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when either startIndex or count is negative, or when there aren't enough elements in the input ResizeArray.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when either startIndex or count is negative, or when there aren't enough elements in the input ResizeArray.</exception>
     let sub (startIndex: int) (count: int) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "sub"
-        if startIndex < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.sub: startIndex '%d' cannot be negative." startIndex
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.sub: count '%d' cannot be negative." count
+        if isNull resizeArray then nullExn "sub"
+        if startIndex < 0 then
+            fail resizeArray $"sub: startIndex '{startIndex}' cannot be negative."
+        if count < 0 then
+            fail resizeArray $"sub: count '{count}' cannot be negative."
         if resizeArray.Count < startIndex + count then
-            ArgumentOutOfRangeException.Raise "ResizeArray.sub: resizeArray.Count %d is smaller than startIndex %d + count %d." resizeArray.Count startIndex count
+            fail resizeArray $"sub: resizeArray.Count {resizeArray.Count} is smaller than startIndex {startIndex} + count {count}."
         resizeArray.GetRange(startIndex, count)
 
 
@@ -1784,7 +1826,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let groupBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'Key * ResizeArray<'T>> =
-        if isNullSeq resizeArray then nullExn "groupBy"
+        if isNull resizeArray then nullExn "groupBy"
         #if FABLE_COMPILER
         groupByImpl StructBox<'Key>.Comparer (fun t -> StructBox(projection t)) (fun sb -> sb.Value) resizeArray
         #else
@@ -1802,7 +1844,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let groupByDict (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : Dictionary<'Key, ResizeArray<'T>> =
-        if isNullSeq resizeArray then nullExn "groupByDict"
+        if isNull resizeArray then nullExn "groupByDict"
         let dict = Dictionary<'Key, ResizeArray<'T>>()
         // Build the groupings
         for i = 0 to resizeArray.Count - 1 do
@@ -1821,11 +1863,11 @@ module ResizeArray =
     /// <summary>Returns the first element of the ResizeArray.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The first element of the ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     let inline head (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "head"
+        if isNull resizeArray then nullExn "head"
         if resizeArray.Count = 0 then
-            ArgumentOutOfRangeException.Raise "ResizeArray.head: The input ResizeArray is empty."
+            fail resizeArray "head: The input ResizeArray is empty."
         else
             resizeArray.[0]
 
@@ -1835,7 +1877,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray of indexed elements.</returns>
     let indexed (resizeArray: ResizeArray<'T>) : ResizeArray<int * 'T> =
-        if isNullSeq resizeArray then nullExn "indexed"
+        if isNull resizeArray then nullExn "indexed"
         let res = ResizeArray(resizeArray.Count)
         for i = 0 to resizeArray.Count - 1 do
             res.Add(i, resizeArray.[i])
@@ -1846,9 +1888,10 @@ module ResizeArray =
     /// <param name="count">The number of elements to initialize.</param>
     /// <param name="initializer">The function to generate the initial values for each index.</param>
     /// <returns>The created ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when count is negative.</exception>
     let inline init (count: int) (initializer: int -> 'T) =
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.init: count %d is negative." count
+        if count < 0 then
+            failSimpel $"init: count ({count}) is negative."
         let res = ResizeArray(count)
         for i = 0 to count - 1 do
             res.Add(initializer i)
@@ -1857,75 +1900,78 @@ module ResizeArray =
     /// <summary>Return a new ResizeArray with a new item inserted before the given index.(does NOT modify in place !)</summary>
     /// <param name="index">The index where the item should be inserted.</param>
     /// <param name="value">The value to insert.</param>
-    /// <param name="source">The input ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when index is below not within source.Count.</exception>
-    let insertAt (index: int) (value: 'T) (source: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq source then nullExn "insertAt"
-        if index < 0 || index > source.Count then ArgumentOutOfRangeException.Raise "ResizeArray.insertAt: index %d not within source.Count %d." index source.Count
-        let r = ResizeArray(source.Count + 1)
+    /// <exception cref="T:System.ArgumentException">Thrown when index is below not within resizeArray.Count.</exception>
+    let insertAt (index: int) (value: 'T) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull resizeArray then nullExn "insertAt"
+        if index < 0 || index > resizeArray.Count then
+            fail resizeArray $"insertAt: index {index} not within resizeArray.Count {resizeArray.Count}."
+        let r = ResizeArray(resizeArray.Count + 1)
         for i = 0 to index - 1 do
-            r.Add source.[i]
+            r.Add resizeArray.[i]
         r.Add value
-        for i = index to source.Count - 1 do
-            r.Add source.[i]
+        for i = index to resizeArray.Count - 1 do
+            r.Add resizeArray.[i]
         r
 
 
     /// <summary>Return a new ResizeArray with new items inserted before the given index.(does NOT modify in place !) If required increases the count of the ResizeArray.</summary>
     /// <param name="index">The index where the items should be inserted.</param>
     /// <param name="values">The values to insert.</param>
-    /// <param name="source">The input ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when index is below not within source.Count.</exception>
-    let insertManyAt (index: int) (values: ICollection<'T>) (source: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq source then nullExn "insertManyAt"
-        if index < 0 || index > source.Count then ArgumentOutOfRangeException.Raise "ResizeArray.insertManyAt: index %d and  not within source.Count %d." index source.Count
-        let r = ResizeArray(source.Count + values.Count)
+    /// <exception cref="T:System.ArgumentException">Thrown when index is below not within resizeArray.Count.</exception>
+    let insertManyAt (index: int) (values: ICollection<'T>) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull resizeArray then nullExn "insertManyAt"
+        if index < 0 || index > resizeArray.Count then
+            fail resizeArray $"insertManyAt: index {index} and  not within resizeArray.Count {resizeArray.Count}."
+        let r = ResizeArray(resizeArray.Count + values.Count)
         for i = 0 to index - 1 do
-            r.Add source.[i]
+            r.Add resizeArray.[i]
         for v in values do
             r.Add v
-        for i = index to source.Count - 1 do
-            r.Add source.[i]
+        for i = index to resizeArray.Count - 1 do
+            r.Add resizeArray.[i]
         r
 
     /// <summary>Returns true if the given ResizeArray is empty, otherwise false.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns><c>true</c> if the ResizeArray is empty.</returns>
     let inline isEmpty (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "isEmpty"
+        if isNull resizeArray then nullExn "isEmpty"
         resizeArray.Count = 0
 
     /// <summary>Gets an element from a ResizeArray.</summary>
     /// <param name="index">The input index.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The value of the ResizeArray at the given index.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the index is negative or the input ResizeArray does not contain enough elements.</exception>
     let inline item index (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "item"
+        if isNull resizeArray then nullExn "item"
         resizeArray.Get index
 
     /// <summary>Applies the given function to each element of the ResizeArray.</summary>
     /// <param name="action">The function to apply.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     let inline iter ( (*[<InlineIfLambda>]*) action) (resizeArray: ResizeArray<'T>) = // TODO activate InlineIfLambda
-        if isNullSeq resizeArray then nullExn "iter"
+        if isNull resizeArray then nullExn "iter"
         for i = 0 to resizeArray.Count - 1 do
             action resizeArray.[i]
 
 
     /// <summary>Applies the given function to pair of elements drawn from matching indices in two ResizeArrays. The
-    /// two ResizeArrays must have the same lengths, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// two ResizeArrays must have the same lengths, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="action">The function to apply.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     let inline iter2 (action: 'T -> 'U -> unit) (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) =
-        if isNullSeq resizeArray1 then nullExn "iter2 first"
-        if isNullSeq resizeArray2 then nullExn "iter2 second"
-        if resizeArray1.Count <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.iter2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if isNull resizeArray1 then nullExn "iter2 first"
+        if isNull resizeArray2 then nullExn "iter2 second"
+        if resizeArray1.Count <> resizeArray2.Count then
+            fail resizeArray1  $"iter2: count of resizeArray1 {resizeArray1.Count} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(action)
         for i = 0 to resizeArray1.Count - 1 do
             f.Invoke(resizeArray1.[i], resizeArray2.[i])
@@ -1936,7 +1982,7 @@ module ResizeArray =
     /// <param name="action">The function to apply to each index and element.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     let inline iteri (action: int -> 'T -> unit) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "iteri"
+        if isNull resizeArray then nullExn "iteri"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(action)
         for i = 0 to resizeArray.Count - 1 do
             f.Invoke(i, resizeArray.[i])
@@ -1944,15 +1990,16 @@ module ResizeArray =
 
     /// <summary>Applies the given function to pair of elements drawn from matching indices in two ResizeArrays,
     /// also passing the index of the elements. The two ResizeArrays must have the same lengths,
-    /// otherwise an <c>ArgumentOutOfRangeException</c> is raised.</summary>
+    /// otherwise an <c>ArgumentException</c> is raised.</summary>
     /// <param name="action">The function to apply to each index and pair of elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     let inline iteri2 (action: int -> 'T -> 'U -> unit) (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) =
-        if isNullSeq resizeArray1 then nullExn "iteri2 first"
-        if isNullSeq resizeArray2 then nullExn "iteri2 second"
-        if resizeArray1.Count <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.iteri2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if isNull resizeArray1 then nullExn "iteri2 first"
+        if isNull resizeArray2 then nullExn "iteri2 second"
+        if resizeArray1.Count <> resizeArray2.Count then
+            fail resizeArray1 $"iteri2: count of resizeArray1 {resizeArray1.Count} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(action)
         for i = 0 to resizeArray1.Count - 1 do
             f.Invoke(i, resizeArray1.[i], resizeArray2.[i])
@@ -1961,10 +2008,11 @@ module ResizeArray =
     /// <summary>Returns the last element of the ResizeArray.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The last element of the ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input does not have any elements.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input does not have any elements.</exception>
     let inline last (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "last"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.last: The input ResizeArray is empty."
+        if isNull resizeArray then nullExn "last"
+        if resizeArray.Count = 0 then
+            fail resizeArray "last: The input ResizeArray is empty."
         resizeArray.[resizeArray.Count - 1]
 
 
@@ -1972,7 +2020,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The length or count of the ResizeArray.</returns>
     let inline length (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "length"
+        if isNull resizeArray then nullExn "length"
         resizeArray.Count
 
     /// <summary>Builds a new ResizeArray whose elements are the results of applying the given function
@@ -1981,7 +2029,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let inline map (mapping: 'T -> 'U) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-        if isNullSeq resizeArray then nullExn "map"
+        if isNull resizeArray then nullExn "map"
         // TODO replace with F# implementation using [<InlineIfLambda>] for performance?? Test on non Lambdas too.
         resizeArray.ConvertAll(System.Converter mapping)
 
@@ -1991,7 +2039,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The Array of transformed elements.</returns>
     let inline mapToArray (mapping: 'T -> 'U) (resizeArray: ResizeArray<'T>) : 'U[] =
-        if isNullSeq resizeArray then nullExn "mapToArray"
+        if isNull resizeArray then nullExn "mapToArray"
         let res = Array.zeroCreate<'U> resizeArray.Count
         for i = 0 to resizeArray.Count - 1 do
             res.[i] <- mapping resizeArray.[i]
@@ -2003,7 +2051,7 @@ module ResizeArray =
     /// <param name="arr">The input Array.</param>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let inline mapFromArray (mapping: 'T -> 'U) (arr: array<'T>) : ResizeArray<'U> =
-        if isNullSeq arr then nullExn "mapFromArray"
+        if isNull arr then nullExn "mapFromArray"
         let res = ResizeArray<'U>(arr.Length)
         for i = 0 to arr.Length - 1 do
             res.Add(mapping arr.[i])
@@ -2015,7 +2063,7 @@ module ResizeArray =
     /// <param name="list">The input collection with IList interface.</param>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let inline mapFromIList (mapping: 'T -> 'U) (list: IList<'T>) : ResizeArray<'U> =
-        if isNullSeq list then nullExn "mapFromIList"
+        if isNull list then nullExn "mapFromIList"
         let res = ResizeArray<'U>(list.Count)
         for i = 0 to list.Count - 1 do
             res.Add(mapping list.[i])
@@ -2027,7 +2075,7 @@ module ResizeArray =
     /// <param name="sequence">The input IEnumerable.</param>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let inline mapFromSeq (mapping: 'T -> 'U) (sequence: seq<'T>) : ResizeArray<'U> =
-        if isNullSeq sequence then nullExn "mapFromSeq"
+        if isNull sequence then nullExn "mapFromSeq"
         let res = ResizeArray<'U>()
         use e = sequence.GetEnumerator()
         while e.MoveNext() do
@@ -2036,17 +2084,18 @@ module ResizeArray =
 
     /// <summary>Builds a new collection whose elements are the results of applying the given function
     /// to the corresponding elements of the two collections pairwise. The two input
-    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// ResizeArrays must have the same lengths, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="mapping">The function to transform the pairs of the input elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let map2 (mapping: 'T1 -> 'T2 -> 'U) (resizeArray1: ResizeArray<'T1>) (resizeArray2: ResizeArray<'T2>) : ResizeArray<'U> =
-        if isNullSeq resizeArray1 then nullExn "map2 first"
-        if isNullSeq resizeArray2 then nullExn "map2 second"
-        if resizeArray1.Count <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.map2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if isNull resizeArray1 then nullExn "map2 first"
+        if isNull resizeArray2 then nullExn "map2 second"
+        if resizeArray1.Count <> resizeArray2.Count then
+            fail resizeArray1 $"map2: count of resizeArray1 {resizeArray1.Count} does not match resizeArray2 {resizeArray2.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
         let res = ResizeArray<'U>(resizeArray1.Count)
         for i = 0 to resizeArray1.Count - 1 do
@@ -2055,20 +2104,21 @@ module ResizeArray =
 
     /// <summary>Builds a new collection whose elements are the results of applying the given function
     /// to the corresponding triples from the three collections. The three input
-    /// ResizeArrays must have the same length, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// ResizeArrays must have the same length, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="mapping">The function to transform the pairs of the input elements.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
     /// <param name="resizeArray3">The third input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let map3 (mapping: 'T1 -> 'T2 -> 'T3 -> 'U) (resizeArray1: ResizeArray<'T1>) (resizeArray2: ResizeArray<'T2>) (resizeArray3: ResizeArray<'T3>) : ResizeArray<'U> =
-        if isNullSeq resizeArray1 then nullExn "map3 first"
-        if isNullSeq resizeArray2 then nullExn "map3 second"
-        if isNullSeq resizeArray3 then nullExn "map3 third"
+        if isNull resizeArray1 then nullExn "map3 first"
+        if isNull resizeArray2 then nullExn "map3 second"
+        if isNull resizeArray3 then nullExn "map3 third"
         let len1 = resizeArray1.Count
-        if len1 <> resizeArray2.Count || len1 <> resizeArray3.Count then ArgumentOutOfRangeException.Raise "ResizeArray.map3: count of resizeArray1 %d does not match resizeArray2 %d or resizeArray3 %d" resizeArray1.Count resizeArray2.Count resizeArray3.Count
+        if len1 <> resizeArray2.Count || len1 <> resizeArray3.Count then
+            fail resizeArray1 $"map3: count of resizeArray1 {len1} does not match resizeArray2 {resizeArray2.Count} or resizeArray3 {resizeArray3.Count}."
         let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(mapping)
         let res = ResizeArray(len1)
         for i = 0 to resizeArray1.Count - 1 do
@@ -2083,7 +2133,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray of transformed elements, and the final accumulated value.</returns>
     let mapFold<'T, 'State, 'Result> (mapping: 'State -> 'T -> 'Result * 'State) state (resizeArray: ResizeArray<'T>) : ResizeArray<'Result> * 'State =
-        if isNullSeq resizeArray then nullExn "mapFold"
+        if isNull resizeArray then nullExn "mapFold"
         match resizeArray.Count with
         | 0 -> ResizeArray(0), state
         | len ->
@@ -2103,7 +2153,7 @@ module ResizeArray =
     /// <param name="state">The initial state.</param>
     /// <returns>The ResizeArray of transformed elements, and the final accumulated value.</returns>
     let mapFoldBack<'T, 'State, 'Result> (mapping: 'T -> 'State -> 'Result * 'State) (resizeArray: ResizeArray<'T>) state : ResizeArray<'Result> * 'State =
-        if isNullSeq resizeArray then nullExn "mapFoldBack"
+        if isNull resizeArray then nullExn "mapFoldBack"
         match resizeArray.Count with
         | 0 -> ResizeArray(0), state
         | len ->
@@ -2125,7 +2175,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let mapi (mapping: int -> 'T -> 'U) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-        if isNullSeq resizeArray then nullExn "mapi"
+        if isNull resizeArray then nullExn "mapi"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
         let res = ResizeArray(resizeArray.Count)
         for i = 0 to resizeArray.Count - 1 do
@@ -2134,31 +2184,33 @@ module ResizeArray =
 
     /// <summary>Builds a new collection whose elements are the results of applying the given function
     /// to the corresponding elements of the two collections pairwise, also passing the index of
-    /// the elements. The two input ResizeArrays must have the same lengths, otherwise an <c>ArgumentOutOfRangeException</c> is
+    /// the elements. The two input ResizeArrays must have the same lengths, otherwise an <c>ArgumentException</c> is
     /// raised.</summary>
     /// <param name="mapping">The function to transform pairs of input elements and their indices.</param>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The ResizeArray of transformed elements.</returns>
     let mapi2 (mapping: int -> 'T1 -> 'T2 -> 'U) (resizeArray1: ResizeArray<'T1>) (resizeArray2: ResizeArray<'T2>) : ResizeArray<'U> =
-        if isNullSeq resizeArray1 then nullExn "mapi2 first"
-        if isNullSeq resizeArray2 then nullExn "mapi2 second"
+        if isNull resizeArray1 then nullExn "mapi2 first"
+        if isNull resizeArray2 then nullExn "mapi2 second"
         let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(mapping)
-        if resizeArray1.Count <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.mapi2: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if resizeArray1.Count <> resizeArray2.Count then
+            fail resizeArray1 $"mapi2: count of resizeArray1 {resizeArray1.Count} does not match resizeArray2 {resizeArray2.Count}."
         let res = ResizeArray(resizeArray1.Count)
         for i = 0 to resizeArray1.Count - 1 do
             res.Add <| f.Invoke(i, resizeArray1.[i], resizeArray2.[i])
         res
 
     /// <summary>Returns the greatest of all elements of the ResizeArray, compared via Operators.max on the function result.
-    /// Throws ArgumentOutOfRangeException for empty ResizeArrays.</summary>
+    /// Throws ArgumentException for empty ResizeArrays.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The maximum element.</returns>
     let inline max (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "max"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.max: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "max"
+        if resizeArray.Count = 0 then
+            fail resizeArray "max: Count must be at least one"
         let mutable acc = resizeArray.[0]
         for i = 1 to resizeArray.Count - 1 do
             let curr = resizeArray.[i]
@@ -2168,11 +2220,12 @@ module ResizeArray =
     /// <summary>Returns the greatest of all elements of the ResizeArray, compared via Operators.max on the function result.</summary>
     /// <param name="projection">The function to transform the elements into a type supporting comparison.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The maximum element.</returns>
     let inline maxBy (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : 'T =
-        if isNullSeq resizeArray then nullExn "maxBy"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.maxBy: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "maxBy"
+        if resizeArray.Count = 0 then
+            fail resizeArray "maxBy: Count must be at least one"
         let mutable accV = resizeArray.[0]
         if resizeArray.Count = 1 then
             accV // if len = 1 then don't call the projection not even once !
@@ -2188,11 +2241,12 @@ module ResizeArray =
 
     /// <summary>Returns the lowest of all elements of the ResizeArray, compared via Operators.min.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The minimum element.</returns>
     let inline min (resizeArray: ResizeArray<'T>) : 'T =
-        if isNullSeq resizeArray then nullExn "min"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.min: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "min"
+        if resizeArray.Count = 0 then
+            fail resizeArray "min: Count must be at least one"
         let mutable acc = resizeArray.[0]
         for i = 1 to resizeArray.Count - 1 do
             let curr = resizeArray.[i]
@@ -2202,11 +2256,12 @@ module ResizeArray =
     /// <summary>Returns the lowest of all elements of the ResizeArray, compared via Operators.min on the function result.</summary>
     /// <param name="projection">The function to transform the elements into a type supporting comparison.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The minimum element.</returns>
     let inline minBy ( (*[<InlineIfLambda>]*) projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : 'T =
-        if isNullSeq resizeArray then nullExn "minBy"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.minBy: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "minBy"
+        if resizeArray.Count = 0 then
+            fail resizeArray "minBy: Count must be at least one"
         let mutable accV = resizeArray.[0]
         if resizeArray.Count = 1 then
             accV // if len = 1 then don't call the projection not even once !
@@ -2238,7 +2293,7 @@ module ResizeArray =
     /// <param name="source">The input sequence.</param>
     /// <returns>The ResizeArray of elements from the sequence.</returns>
     let ofSeq (source: seq<'T>) =
-        if isNullSeq source then nullExn "ofSeq"
+        if isNull source then nullExn "ofSeq"
         ResizeArray(source)
 
 
@@ -2248,7 +2303,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let pairwise (resizeArray: ResizeArray<'T>) : ResizeArray<'T * 'T> =
-        if isNullSeq resizeArray then nullExn "pairwise"
+        if isNull resizeArray then nullExn "pairwise"
         if resizeArray.Count < 2 then
             ResizeArray(0)
         else
@@ -2263,7 +2318,7 @@ module ResizeArray =
     /// <returns>A pair of ResizeArrays. The first containing the elements the predicate evaluated to <c>true</c> ,
     /// and the second containing those evaluated to <c>false</c>.</returns>
     let partition (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> * ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "partition"
+        if isNull resizeArray then nullExn "partition"
         let trueResults = ResizeArray()
         let falseResults = ResizeArray()
         let len = resizeArray.Count
@@ -2280,18 +2335,20 @@ module ResizeArray =
     /// <param name="indexMap">The function that maps input indices to output indices.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The output ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when indexMap does not produce a valid permutation.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when indexMap does not produce a valid permutation.</exception>
     let permute (indexMap: int -> int) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "permute"
+        if isNull resizeArray then nullExn "permute"
         let res = resizeArray.Clone()
         let inv = Array.zeroCreate resizeArray.Count
         for i = 0 to resizeArray.Count - 1 do
             let j = indexMap i
-            if j < 0 || j >= resizeArray.Count then ArgumentOutOfRangeException.Raise "ResizeArray.permute: the indexMap generated %d from %d but only 0 to %d is allowed" j i (resizeArray.Count - 1)
+            if j < 0 || j >= resizeArray.Count then
+                fail resizeArray $"permute: the indexMap generated {j} from {i} but only 0 to {(resizeArray.Count-1)} is allowed"
             res.[j] <- resizeArray.[i]
             inv.[j] <- 1uy
         for i = 0 to resizeArray.Count - 1 do
-            if inv.[i] <> 1uy then ArgumentOutOfRangeException.Raise "ResizeArray.permute: the indexMap function did not generated %d a new value for " i
+            if inv.[i] <> 1uy then
+                fail resizeArray $"permute: the indexMap function did not generated {i} a new value for "
         res
 
 
@@ -2304,10 +2361,10 @@ module ResizeArray =
     /// <c>chooser</c> is <c>None</c>.</exception>
     /// <returns>The first result.</returns>
     let pick (chooser: 'T -> 'U option) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "pick"
+        if isNull resizeArray then nullExn "pick"
         let rec loop i =
             if i = resizeArray.Count then
-                KeyNotFoundException.Raise "ResizeArray.pick: Key not found in %d elements" resizeArray.Count
+                failKey resizeArray $"pick: Key not found in {resizeArray.Count} elements"
             else
                 match chooser resizeArray.[i] with
                 | Some res -> res
@@ -2323,10 +2380,10 @@ module ResizeArray =
     /// <c>chooser</c> is <c>None</c>.</exception>
     /// <returns>The first result. From the end of the ResizeArray.</returns>
     let pickBack (chooser: 'T -> 'U option) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "pickBack"
+        if isNull resizeArray then nullExn "pickBack"
         let rec loop i =
             if i = -1 then
-                KeyNotFoundException.Raise "ResizeArray.pickBack: Key not found in %d elements" resizeArray.Count
+                failKey resizeArray $"pickBack: Key not found in {resizeArray.Count} elements"
             else
                 match chooser resizeArray.[i] with
                 | Some res -> res
@@ -2336,14 +2393,15 @@ module ResizeArray =
     /// <summary>Applies a function to each element of the ResizeArray, threading an accumulator argument
     /// through the computation. If the input function is <c>f</c> and the elements are <c>i0...iN</c>
     /// then computes <c>f (... (f i0 i1)...) iN</c>.
-    /// Raises ArgumentOutOfRangeException if the ResizeArray has size zero.</summary>
+    /// Raises ArgumentException if the ResizeArray has size zero.</summary>
     /// <param name="reduction">The function to reduce a pair of elements to a single element.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The final result of the reductions.</returns>
     let reduce (reduction: 'T -> 'T -> 'T) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "reduce"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.reduce: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "reduce"
+        if resizeArray.Count = 0 then
+            fail resizeArray "reduce: Count must be at least one"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(reduction)
         let mutable res = resizeArray.[0]
         for i = 1 to resizeArray.Count - 1 do
@@ -2357,11 +2415,12 @@ module ResizeArray =
     /// <param name="reduction">A function that takes in the next-to-last element of the list and the
     /// current accumulated result to produce the next accumulated result.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty.</exception>
     /// <returns>The final result of the reductions.</returns>
     let reduceBack (reduction: 'T -> 'T -> 'T) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "reduceBack"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.reduceBack: Count must be at least one: %s" resizeArray.ToNiceStringLong
+        if isNull resizeArray then nullExn "reduceBack"
+        if resizeArray.Count = 0 then
+            fail resizeArray "reduceBack: Count must be at least one"
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(reduction)
         let mutable res = resizeArray.Last
         for i = resizeArray.Count - 2 downto 0 do
@@ -2371,26 +2430,28 @@ module ResizeArray =
 
     /// <summary>Return a new ResizeArray with the item at a given index removed. (does NOT modify in place !)</summary>
     /// <param name="index">The index of the item to be removed.</param>
-    /// <param name="source">The input ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when index is outside 0..source.Length - 1</exception>
-    let removeAt (index: int) (source: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq source then nullExn "removeAt"
-        if index < 0 || index >= source.Count then ArgumentOutOfRangeException.Raise "ResizeArray.removeAt: index %d not within source.Count %d." index source.Count
-        let r = source.Clone()
+    /// <exception cref="T:System.ArgumentException">Thrown when index is outside 0..resizeArray.Length - 1</exception>
+    let removeAt (index: int) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull resizeArray then nullExn "removeAt"
+        if index < 0 || index >= resizeArray.Count then
+            fail resizeArray $"removeAt: index {index} not within resizeArray.Count {resizeArray.Count}."
+        let r = resizeArray.Clone()
         r.RemoveAt(index)
         r
 
     /// <summary>Return a new ResizeArray with the number of items starting at a given index removed. (does NOT modify in place !)</summary>
     /// <param name="index">The index of the first item to be removed.</param>
     /// <param name="count">The number of items to remove.</param>
-    /// <param name="source">The input ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when index is outside 0..source.Length - count</exception>
-    let removeManyAt (index: int) (count: int) (source: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq source then nullExn "removeManyAt"
-        if index < 0 || index > source.Count - count then ArgumentOutOfRangeException.Raise "ResizeArray.removeManyAt: index %d and count %d not within source.Count %d." index count source.Count
-        let r = source.Clone()
+    /// <exception cref="T:System.ArgumentException">Thrown when index is outside 0..resizeArray.Length - count</exception>
+    let removeManyAt (index: int) (count: int) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull resizeArray then nullExn "removeManyAt"
+        if index < 0 || index > resizeArray.Count - count then
+            fail resizeArray $"removeManyAt: index {index} and count {count} not within resizeArray.Count {resizeArray.Count}."
+        let r = resizeArray.Clone()
         r.RemoveRange(index, count)
         r
 
@@ -2398,9 +2459,10 @@ module ResizeArray =
     /// <param name="count">The number of elements to replicate.</param>
     /// <param name="initial">The value to replicate</param>
     /// <returns>The generated ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when count is negative.</exception>
     let replicate count (initial: 'T) =
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.replicate: count %d cannot be negative " count
+        if count < 0 then
+            failSimpel $"replicate: count {count} cannot be negative "
         let arr = ResizeArray(count)
         for _ = 0 to count - 1 do
             arr.Add(initial)
@@ -2410,7 +2472,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The reversed ResizeArray.</returns>
     let rev (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "rev"
+        if isNull resizeArray then nullExn "rev"
         let len = resizeArray.Count
         let result = ResizeArray(len)
         for i = len - 1 downto 0 do
@@ -2421,7 +2483,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>unit</returns>
     let revInPlace (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "revInPlace"
+        if isNull resizeArray then nullExn "revInPlace"
         resizeArray.Reverse()
 
 
@@ -2429,9 +2491,10 @@ module ResizeArray =
     /// <param name="folder">The function to update the state given the input elements.</param>
     /// <param name="stateInit">The initial state.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <returns>The ResizeArray of state values. This ResizeArray has the initial state and the state for all elements in the input ResizeArray, so one more item than the input.</returns>
+    /// <returns>The ResizeArray of state values. This ResizeArray has the initial state and the state for all elements in the input ResizeArray,
+    /// so one more item than the input.</returns>
     let scan<'T, 'State> (folder: 'State -> 'T -> 'State) (stateInit: 'State) (resizeArray: ResizeArray<'T>) : ResizeArray<'State> =
-        if isNullSeq resizeArray then nullExn "scan"
+        if isNull resizeArray then nullExn "scan"
         let folder = OptimizedClosures.FSharpFunc<_, _, _>.Adapt folder
         // Holds the initial and intermediate state values.
         let results = ResizeArray(resizeArray.Count + 1)
@@ -2449,7 +2512,7 @@ module ResizeArray =
     /// <param name="stateInit">The initial state.</param>
     /// <returns>The ResizeArray of state values. Count = input count + 1 </returns>
     let scanBack<'T, 'State> (folder: 'T -> 'State -> 'State) (resizeArray: ResizeArray<'T>) (stateInit: 'State) : ResizeArray<'State> =
-        if isNullSeq resizeArray then nullExn "scanBack"
+        if isNull resizeArray then nullExn "scanBack"
         let folder = OptimizedClosures.FSharpFunc<_, _, _>.Adapt folder
         let results = ResizeArray(resizeArray.Count + 1) // Holds the initial and intermediate state values.
         for _ = 0 to resizeArray.Count do // to fill up list +1 with default values
@@ -2466,12 +2529,12 @@ module ResizeArray =
     /// <param name="count">The number of elements to skip.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A copy of the input ResizeArray, after removing the first N elements.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when count is negative or exceeds the number of
+    /// <exception cref="T:System.ArgumentException">Thrown when count is negative or exceeds the number of
     /// elements in the ResizeArray.</exception>
     let skip count (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "skip"
+        if isNull resizeArray then nullExn "skip"
         if count < 0 || count > resizeArray.Count then
-            ArgumentOutOfRangeException.Raise "ResizeArray.skip: count %d is not in range of 0 to resizeArray.Count %d " count resizeArray.Count
+            fail resizeArray $"skip: count {count} is not in range of 0 to resizeArray.Count {resizeArray.Count} "
 
         if count = resizeArray.Count then
             ResizeArray()
@@ -2485,7 +2548,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The created sub ResizeArray.</returns>
     let skipWhile (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "skipWhile"
+        if isNull resizeArray then nullExn "skipWhile"
         let mutable i = 0
         while i < resizeArray.Count && predicate resizeArray.[i] do
             i <- i + 1
@@ -2502,7 +2565,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A new sorted ResizeArray.</returns>
     let sort<'T when 'T: comparison> (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "sort"
+        if isNull resizeArray then nullExn "sort"
         let r = resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
         r.Sort(Operators.compare)
         r
@@ -2517,7 +2580,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sorted ResizeArray.</returns>
     let sortBy<'T, 'Key when 'Key: comparison> (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "sortBy"
+        if isNull resizeArray then nullExn "sortBy"
         let r = resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
         r.Sort(fun x y -> Operators.compare (projection x) (projection y))
         r
@@ -2532,7 +2595,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sorted ResizeArray.</returns>
     let inline sortByDescending<'T, 'Key when 'Key: comparison> (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "sortByDescending"
+        if isNull resizeArray then nullExn "sortByDescending"
         let r = resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
         r.Sort(fun x y -> Operators.compare (projection y) (projection x)) // x and y are swapped for descending order
         r
@@ -2545,7 +2608,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sorted ResizeArray.</returns>
     let sortDescending<'T when 'T: comparison> (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "sortDescending"
+        if isNull resizeArray then nullExn "sortDescending"
         let r = resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
         r.Sort(Operators.compare) // Operators.compare is need to match sorting of Array.sort
         r.Reverse()
@@ -2559,7 +2622,7 @@ module ResizeArray =
     /// For a stable sort, consider using Seq.sort.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
     let sortInPlace<'T when 'T: comparison> (resizeArray: ResizeArray<'T>) : unit =
-        if isNullSeq resizeArray then nullExn "sortInPlace"
+        if isNull resizeArray then nullExn "sortInPlace"
         resizeArray.Sort(Operators.compare) // Operators.compare is need to match sorting of Array.sort
 
 
@@ -2571,7 +2634,7 @@ module ResizeArray =
     /// <param name="projection">The function to transform ResizeArray elements into the type that is compared.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     let sortInPlaceBy<'T, 'Key when 'Key: comparison> (projection: 'T -> 'Key) (resizeArray: ResizeArray<'T>) : unit =
-        if isNullSeq resizeArray then nullExn "sortInPlaceBy"
+        if isNull resizeArray then nullExn "sortInPlaceBy"
         resizeArray.Sort(fun x y -> Operators.compare (projection x) (projection y))
 
     /// <summary>Sorts the elements of a ResizeArray by mutating the ResizeArray in-place, using the given comparison function as the order.
@@ -2580,7 +2643,7 @@ module ResizeArray =
     /// <param name="comparer">The function to compare pairs of ResizeArray elements.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     let sortInPlaceWith (comparer: 'T -> 'T -> int) (resizeArray: ResizeArray<'T>) : unit =
-        if isNullSeq resizeArray then nullExn "sortInPlaceWith"
+        if isNull resizeArray then nullExn "sortInPlaceWith"
         resizeArray.Sort(comparer)
 
     /// <summary>Sorts the elements of a ResizeArray, using the given comparison function as the order, returning a new ResizeArray.
@@ -2590,7 +2653,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sorted ResizeArray.</returns>
     let sortWith (comparer: 'T -> 'T -> int) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "sortWith"
+        if isNull resizeArray then nullExn "sortWith"
         let r = resizeArray.GetRange(0, resizeArray.Count) // fastest way to create a shallow copy
         r.Sort(comparer)
         r
@@ -2599,10 +2662,11 @@ module ResizeArray =
     /// <param name="index">The index at which the ResizeArray is split.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The two split ResizeArrays.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when split index exceeds the number of elements in the ResizeArray.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when split index exceeds the number of elements in the ResizeArray.</exception>
     let splitAt index (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "splitAt"
-        if index < 0 || index > resizeArray.Count then ArgumentOutOfRangeException.Raise "ResizeArray.splitAt: index %d is not in range  0 to resizeArray.Count-1 (%d)" index (resizeArray.Count - 1)
+        if isNull resizeArray then nullExn "splitAt"
+        if index < 0 || index > resizeArray.Count then
+            fail resizeArray $"splitAt: index {index} is not in range  0 to resizeArray.Count-1 ({(resizeArray.Count-1)})"
         resizeArray.GetRange(0, index), resizeArray.GetRange(index, resizeArray.Count - index)
 
 
@@ -2611,12 +2675,12 @@ module ResizeArray =
     /// <param name="chunkCount">The maximum number of chunks.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The ResizeArray split into chunks.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <c>count</c> is not positive.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when <c>count</c> is not positive.</exception>
     let splitInto (chunkCount: int) (resizeArray: ResizeArray<'T>) : ResizeArray<ResizeArray<'T>> =
-        if isNullSeq resizeArray then nullExn "splitInto"
-        if chunkCount < 1 then ArgumentOutOfRangeException.Raise "ResizeArray.splitInto: count %d is less than 1" chunkCount
+        if isNull resizeArray then nullExn "splitInto"
+        if chunkCount < 1 then
+            fail resizeArray $"splitInto: count {chunkCount} is less than 1"
         let len = resizeArray.Count
-
         if len = 0 then
             ResizeArray(0)
         else
@@ -2626,20 +2690,16 @@ module ResizeArray =
             let mutable sub = ResizeArray(chunksize)
             let res = ResizeArray(chunkCount)
             res.Add(sub)
-
             for i = 0 to len - 1 do
                 //printfn "i %d v: %d chunksize %d" i resizeArray.[i] chunksize
                 if k = chunksize then
                     sub <- ResizeArray(chunksize)
                     res.Add(sub)
                     k <- 0
-
                     if res.Count = oneBiggerFor + 1 then // reduce list size once
                         chunksize <- chunksize - 1
-
                 sub.Add(resizeArray.[i])
                 k <- k + 1
-
             res
 
 
@@ -2647,7 +2707,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The resulting sum.</returns>
     let inline sum (resizeArray: ^T ResizeArray) : ^T =
-        if isNullSeq resizeArray then nullExn "sum"
+        if isNull resizeArray then nullExn "sum"
         let mutable acc = LanguagePrimitives.GenericZero< ^T>
         for i = 0 to resizeArray.Count - 1 do
             acc <- Checked.(+) acc resizeArray.[i]
@@ -2659,7 +2719,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The resulting sum.</returns>
     let inline sumBy (projection: 'T -> ^Key) (resizeArray: ResizeArray<'T>) : ^Key =
-        if isNullSeq resizeArray then nullExn "sumBy"
+        if isNull resizeArray then nullExn "sumBy"
         let mutable acc = LanguagePrimitives.GenericZero< ^Key>
         for i = 0 to resizeArray.Count - 1 do
             acc <- Checked.(+) acc (projection resizeArray.[i])
@@ -2668,29 +2728,31 @@ module ResizeArray =
 
     /// <summary>Returns a new ResizeArray containing the elements of the original except the first element.</summary>
     /// <param name="resizeArray">The input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the ResizeArray is empty.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the ResizeArray is empty.</exception>
     /// <returns>A new ResizeArray containing the elements of the original except the first element.</returns>
     let tail (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "tail"
-        if resizeArray.Count = 0 then ArgumentOutOfRangeException.Raise "ResizeArray.tail: input ResizeArray is empty"
+        if isNull resizeArray then nullExn "tail"
+        if resizeArray.Count = 0 then
+            fail resizeArray "tail: input ResizeArray is empty"
         resizeArray.GetRange(1, resizeArray.Count - 1)
 
 
     /// <summary>Returns the first N elements of the ResizeArray.
-    /// Throws <c>ArgumentOutOfRangeException</c> if the count exceeds the number of elements in the ResizeArray.
+    /// Throws <c>ArgumentException</c> if the count exceeds the number of elements in the ResizeArray.
     /// Use <c>ResizeArray.truncate</c> to returns as many items as the ResizeArray contains instead of throwing an exception.</summary>
     /// <param name="count">The number of items to take.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArray is empty or count exceeds the number of elements in the list.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArray is empty or count exceeds the number of elements in the list.</exception>
     let take count (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "take"
-        if count < 0 then ArgumentOutOfRangeException.Raise "ResizeArray.take: count %d cannot be negative." count
+        if isNull resizeArray then nullExn "take"
+        if count < 0 then
+            fail resizeArray $"take: count {count} cannot be negative."
         if count = 0 then
             ResizeArray(0)
         else
             if count > resizeArray.Count then
-                ArgumentOutOfRangeException.Raise "ResizeArray.take: count %d > resizeArray.Count %d." count resizeArray.Count
+                fail resizeArray $"take: count {count} > resizeArray.Count {resizeArray.Count}."
             resizeArray.GetRange(0, count)
 
 
@@ -2701,7 +2763,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let takeWhile (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "takeWhile"
+        if isNull resizeArray then nullExn "takeWhile"
         if resizeArray.Count = 0 then
             ResizeArray(0)
         else
@@ -2716,7 +2778,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The list of ResizeArray elements.</returns>
     let toList (resizeArray: ResizeArray<'T>) : list<'T> =
-        if isNullSeq resizeArray then nullExn "toList"
+        if isNull resizeArray then nullExn "toList"
         let mutable res = []
         for i = resizeArray.Count - 1 downto 0 do
             res <- resizeArray.[i] :: res
@@ -2727,16 +2789,16 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The sequence of ResizeArray elements.</returns>
     let toSeq (resizeArray: ResizeArray<'T>) : seq<'T> =
-        if isNullSeq resizeArray then nullExn "toSeq"
+        if isNull resizeArray then nullExn "toSeq"
         Seq.readonly resizeArray
 
 
     /// <summary>Returns the transpose of the given sequence of ResizeArrays.</summary>
     /// <param name="resizeArrays">The input sequence of ResizeArrays.</param>
     /// <returns>The transposed ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     let transpose (resizeArrays: ResizeArray<ResizeArray<'T>>) : ResizeArray<ResizeArray<'T>> =
-        if isNullSeq resizeArrays then nullExn "transpose"
+        if isNull resizeArrays then nullExn "transpose"
         // originally let transpose (resizeArrays: seq<ResizeArray<'T>>) : ResizeArray<ResizeArray<'T>> =
         let len = resizeArrays.Count
         if len = 0 then
@@ -2744,7 +2806,8 @@ module ResizeArray =
         else
             let lenInner = resizeArrays.[0].Count
             for j = 1 to len - 1 do
-                if lenInner <> resizeArrays.[j].Count then ArgumentOutOfRangeException.Raise "ResizeArray.transpose: the count %d in sub ResizeArray %d does not match the count of the first ResizeArray %d." resizeArrays.[j].Count j lenInner
+                if lenInner <> resizeArrays.[j].Count then
+                    fail resizeArrays $"transpose: the count {resizeArrays.[j].Count} in sub ResizeArray {j} does not match the count of the first ResizeArray {lenInner}."
             let result = ResizeArray(lenInner)
             for i = 0 to lenInner - 1 do
                 let sub = ResizeArray(len)
@@ -2759,7 +2822,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
     let truncate count (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq resizeArray then nullExn "truncate"
+        if isNull resizeArray then nullExn "truncate"
         if count <= 0 then
             ResizeArray(0)
         else
@@ -2772,7 +2835,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The only element of the ResizeArray or <c>None</c>.</returns>
     let tryExactlyOne (resizeArray: ResizeArray<'T>) : option<'T> =
-        if isNullSeq resizeArray then nullExn "tryExactlyOne"
+        if isNull resizeArray then nullExn "tryExactlyOne"
         if resizeArray.Count = 1 then Some resizeArray.[0] else None
 
 
@@ -2782,7 +2845,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The first element that satisfies the predicate, or <c>None</c>.</returns>
     let tryFind (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : option<'T> =
-        if isNullSeq resizeArray then nullExn "tryFind"
+        if isNull resizeArray then nullExn "tryFind"
         let elementIndex = resizeArray.FindIndex(System.Predicate predicate)
         match elementIndex with
         | -1 -> None
@@ -2795,7 +2858,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The last element that satisfies the predicate, or <c>None</c>.</returns>
     let tryFindBack (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : option<'T> =
-        if isNullSeq resizeArray then nullExn "tryFindBack"
+        if isNull resizeArray then nullExn "tryFindBack"
         let rec loop i =
             if i < 0 then None
             else if predicate resizeArray.[i] then Some resizeArray.[i]
@@ -2809,7 +2872,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The index of the first element that satisfies the predicate, or <c>None</c>.</returns>
     let tryFindIndex (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : option<int> =
-        if isNullSeq resizeArray then nullExn "tryFindIndex"
+        if isNull resizeArray then nullExn "tryFindIndex"
         let elementIndex = resizeArray.FindIndex(System.Predicate predicate)
         match elementIndex with
         | -1 -> None
@@ -2822,7 +2885,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The index of the last element that satisfies the predicate, or <c>None</c>.</returns>
     let tryFindIndexBack (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) : option<int> =
-        if isNullSeq resizeArray then nullExn "tryFindIndexBack"
+        if isNull resizeArray then nullExn "tryFindIndexBack"
         let rec loop i =
             if i < 0 then None
             else if predicate resizeArray.[i] then Some i
@@ -2835,7 +2898,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The first element of the ResizeArray or <c>None</c>.</returns>
     let tryHead (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "tryHead"
+        if isNull resizeArray then nullExn "tryHead"
         if resizeArray.Count = 0 then None else Some resizeArray.[0]
 
 
@@ -2845,7 +2908,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The nth element of the ResizeArray or <c>None</c>.</returns>
     let tryItem index (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "tryItem"
+        if isNull resizeArray then nullExn "tryItem"
         if index < 0 || index >= resizeArray.Count then
             None
         else
@@ -2857,7 +2920,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The last element of the ResizeArray or <c>None</c>.</returns>
     let tryLast (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "tryLast"
+        if isNull resizeArray then nullExn "tryLast"
         if resizeArray.Count = 0 then
             None
         else
@@ -2871,7 +2934,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The first transformed element that is <c>Some(x)</c>.</returns>
     let tryPick chooser (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "tryPick"
+        if isNull resizeArray then nullExn "tryPick"
         let rec loop i =
             if i >= resizeArray.Count then
                 None
@@ -2904,7 +2967,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The two ResizeArrays.</returns>
     let unzip (resizeArray: ResizeArray<'T * 'U>) : ResizeArray<'T> * ResizeArray<'U> =
-        if isNullSeq resizeArray then nullExn "unzip"
+        if isNull resizeArray then nullExn "unzip"
         let len = resizeArray.Count
         let res1 = ResizeArray(len)
         let res2 = ResizeArray(len)
@@ -2919,7 +2982,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The tuple of three ResizeArrays.</returns>
     let unzip3 (resizeArray: ResizeArray<'T * 'U * 'V>) =
-        if isNullSeq resizeArray then nullExn "unzip3"
+        if isNull resizeArray then nullExn "unzip3"
         let len = resizeArray.Count
         let res1 = ResizeArray(len)
         let res2 = ResizeArray(len)
@@ -2931,16 +2994,17 @@ module ResizeArray =
             res3.Add <| z
         res1, res2, res3
 
-    /// <summary>Return a new ResizeArray with the item at a given index set to the new value.(does NOT modify in place !)</summary>
+    /// <summary>Return a new ResizeArray with the item at a given index set to the new value. (does NOT modify in place !)</summary>
     /// <param name="index">The index of the item to be replaced.</param>
     /// <param name="value">The new value.</param>
-    /// <param name="source">The input ResizeArray.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when index is not within  source.Count </exception>
-    let updateAt (index: int) (value: 'T) (source: ResizeArray<'T>) : ResizeArray<'T> =
-        if isNullSeq source then nullExn "updateAt"
-        if index < 0 || index >= source.Count then ArgumentOutOfRangeException.Raise "ResizeArray.updateAt: index %d  not within source.Count %d." index source.Count
-        let r = source.Clone()
+    /// <exception cref="T:System.ArgumentException">Thrown when index is not within resizeArray.Count </exception>
+    let updateAt (index: int) (value: 'T) (resizeArray: ResizeArray<'T>) : ResizeArray<'T> =
+        if isNull resizeArray then nullExn "updateAt"
+        if index < 0 || index >= resizeArray.Count then
+            badSetExn index resizeArray "updateAt" value
+        let r = resizeArray.Clone()
         r.[index] <- value
         r
 
@@ -2951,7 +3015,7 @@ module ResizeArray =
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>a ResizeArray containing the elements for which the given predicate returns true.</returns>
     let where (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "where"
+        if isNull resizeArray then nullExn "where"
         filter predicate resizeArray
 
 
@@ -2959,10 +3023,11 @@ module ResizeArray =
     /// <param name="windowSize">The number of elements in each window.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>The result ResizeArray.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when windowSize is not positive.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when windowSize is not positive.</exception>
     let windowed windowSize (resizeArray: ResizeArray<'T>) =
-        if isNullSeq resizeArray then nullExn "windowed"
-        if windowSize <= 0 then ArgumentOutOfRangeException.Raise "ResizeArray.windowed: windowSize %d cannot be negative or 0." windowSize
+        if isNull resizeArray then nullExn "windowed"
+        if windowSize <= 0 then
+            fail resizeArray $"windowed: windowSize {windowSize} cannot be negative or 0."
         let len = resizeArray.Count
         if windowSize > len then
             ResizeArray(0)
@@ -2973,38 +3038,41 @@ module ResizeArray =
             res
 
 
-    /// <summary>Combines the two ResizeArrays into a ResizeArray of pairs. The two ResizeArrays must have equal lengths, otherwise an <c>ArgumentOutOfRangeException</c> is raised.</summary>
+    /// <summary>Combines the two ResizeArrays into a ResizeArray of pairs. The two ResizeArrays must have equal lengths, otherwise an <c>ArgumentException</c> is raised.</summary>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The ResizeArray of tupled elements.</returns>
     let zip (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) =
-        if isNullSeq resizeArray1 then nullExn "zip first"
-        if isNullSeq resizeArray2 then nullExn "zip second"
+        if isNull resizeArray1 then nullExn "zip first"
+        if isNull resizeArray2 then nullExn "zip second"
         let len1 = resizeArray1.Count
-        if len1 <> resizeArray2.Count then ArgumentOutOfRangeException.Raise "ResizeArray.zip: count of resizeArray1 %d does not match resizeArray2 %d." resizeArray1.Count resizeArray2.Count
+        if len1 <> resizeArray2.Count then
+            fail resizeArray1 "zip: count of resizeArray1 {len1} does not match resizeArray2 {resizeArray2.Count}."
         let res = ResizeArray(len1)
         for i = 0 to resizeArray1.Count - 1 do
             res.Add(resizeArray1.[i], resizeArray2.[i])
         res
 
 
-    /// <summary>Combines three ResizeArrays into a ResizeArray of pairs. The three ResizeArrays must have equal lengths, otherwise an <c>ArgumentOutOfRangeException</c> is raised.</summary>
+    /// <summary>Combines three ResizeArrays into a ResizeArray of pairs. The three ResizeArrays must have equal lengths, otherwise an <c>ArgumentException</c> is raised.</summary>
     /// <param name="resizeArray1">The first input ResizeArray.</param>
     /// <param name="resizeArray2">The second input ResizeArray.</param>
     /// <param name="resizeArray3">The third input ResizeArray.</param>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the input ResizeArrays differ in length.</exception>
+    /// <exception cref="T:System.ArgumentException">Thrown when the input ResizeArrays differ in length.</exception>
     /// <returns>The ResizeArray of tupled elements.</returns>
     let zip3 (resizeArray1: ResizeArray<'T>) (resizeArray2: ResizeArray<'U>) (resizeArray3: ResizeArray<'V>) =
-        if isNullSeq resizeArray1 then nullExn "zip3 first"
-        if isNullSeq resizeArray2 then nullExn "zip3 second"
-        if isNullSeq resizeArray3 then nullExn "zip3 third"
+        if isNull resizeArray1 then nullExn "zip3 first"
+        if isNull resizeArray2 then nullExn "zip3 second"
+        if isNull resizeArray3 then nullExn "zip3 third"
         let len1 = resizeArray1.Count
-        if len1 <> resizeArray2.Count || len1 <> resizeArray3.Count then ArgumentOutOfRangeException.Raise "ResizeArray.zip3: count of resizeArray1 %d does not match resizeArray2 %d or resizeArray3 %d." resizeArray1.Count resizeArray2.Count resizeArray3.Count
+        if len1 <> resizeArray2.Count || len1 <> resizeArray3.Count then
+            fail resizeArray1 $"zip3: count of resizeArray1 {len1} does not match resizeArray2 {resizeArray2.Count} or resizeArray3 {resizeArray3.Count}."
         let res = ResizeArray(len1)
         for i = 0 to resizeArray1.Count - 1 do
             res.Add(resizeArray1.[i], resizeArray2.[i], resizeArray3.[i])
         res
+
 
     #if FABLE_COMPILER
     // Fable doesn't support System.Threading.Tasks.Parallel.For
@@ -3026,7 +3094,7 @@ module ResizeArray =
         /// <param name="resizeArray">The input ResizeArray.</param>
         /// <returns>The ResizeArray of results.</returns>
         let choose (chooser: 'T -> option<'U>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-            if isNullSeq resizeArray then nullExn "Parallel.choose"
+            if isNull resizeArray then nullExn "Parallel.choose"
             let inputLength = resizeArray.Count
             let isChosen: bool[] = Array.zeroCreate inputLength
             let results: 'U[] = Array.zeroCreate inputLength
@@ -3050,7 +3118,6 @@ module ResizeArray =
                 if isChosen.[i] then output.Add results.[i]
             output
 
-
         /// <summary>For each element of the ResizeArray, apply the given function. Concatenate all the results and return the combined ResizeArray.
         /// Performs the operation in parallel using <see cref="M:System.Threading.Tasks.Parallel.For" />.
         /// The order in which the given function is applied to elements of the input ResizeArray is not specified.</summary>
@@ -3058,7 +3125,7 @@ module ResizeArray =
         /// <param name="resizeArray">The input ResizeArray.</param>
         /// <returns>'U[]</returns>
         let collect (mapping: 'T -> ResizeArray<'U>) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-            if isNullSeq resizeArray then nullExn "Parallel.collect"
+            if isNull resizeArray then nullExn "Parallel.collect"
             let inputLength = resizeArray.Count
             let result = create inputLength Unchecked.defaultof<_>
             Parallel.For(0, inputLength, (fun i -> result.[i] <- mapping resizeArray.[i]))|> ignore
@@ -3083,7 +3150,7 @@ module ResizeArray =
         /// <param name="action"></param>
         /// <param name="resizeArray">The input ResizeArray.</param>
         let iter (action: 'T -> unit) (resizeArray: ResizeArray<'T>) =
-            if isNullSeq resizeArray then nullExn "Parallel.iter"
+            if isNull resizeArray then nullExn "Parallel.iter"
             Parallel.For(0, resizeArray.Count, (fun i -> action resizeArray.[i])) |> ignore
 
 
@@ -3094,7 +3161,7 @@ module ResizeArray =
         /// <param name="action"></param>
         /// <param name="resizeArray">The input ResizeArray.</param>
         let iteri (action: int -> 'T -> unit) (resizeArray: ResizeArray<'T>) =
-            if isNullSeq resizeArray then nullExn "Parallel.iteri"
+            if isNull resizeArray then nullExn "Parallel.iteri"
             let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(action)
             Parallel.For(0, resizeArray.Count, (fun i -> f.Invoke(i, resizeArray.[i])))
             |> ignore
@@ -3108,7 +3175,7 @@ module ResizeArray =
         /// <param name="resizeArray">The input ResizeArray.</param>
         /// <returns>The ResizeArray of results.</returns>
         let map (mapping: 'T -> 'U) (resizeArray: ResizeArray<'T>) : ResizeArray<'U> =
-            if isNullSeq resizeArray then nullExn "Parallel.map"
+            if isNull resizeArray then nullExn "Parallel.map"
             let inputLength = resizeArray.Count
             let result = create inputLength Unchecked.defaultof<_>
             Parallel.For(0, inputLength, (fun i -> result.[i] <- mapping resizeArray.[i]))
@@ -3126,7 +3193,7 @@ module ResizeArray =
         /// <param name="resizeArray">The input ResizeArray.</param>
         /// <returns>The ResizeArray of results.</returns>
         let mapi (mapping: int -> 'T -> 'U) (resizeArray: ResizeArray<'T>) =
-            if isNullSeq resizeArray then nullExn "Parallel.mapi"
+            if isNull resizeArray then nullExn "Parallel.mapi"
             let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
             let inputLength = resizeArray.Count
             let result = create inputLength Unchecked.defaultof<_>
@@ -3144,7 +3211,7 @@ module ResizeArray =
         /// <param name="resizeArray">The input ResizeArray.</param>
         /// <returns>The two ResizeArrays of results.</returns>
         let partition (predicate: 'T -> bool) (resizeArray: ResizeArray<'T>) =
-            if isNullSeq resizeArray then nullExn "Parallel.partition"
+            if isNull resizeArray then nullExn "Parallel.partition"
             let inputLength = resizeArray.Count
             let isTrue = Array.zeroCreate inputLength
             let mutable trueLength = 0
@@ -3172,6 +3239,5 @@ module ResizeArray =
             res1, res2
 
     #endif
-
 
 
