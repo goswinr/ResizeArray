@@ -18,3 +18,10 @@ updates:
     directory: "/Tests/"
     schedule:
       interval: "daily"
+
+
+  # Update to newer NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/Tests/"
+    schedule:
+      interval: "weekly"

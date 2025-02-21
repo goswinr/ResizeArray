@@ -4,6 +4,10 @@ open System
 open System.Collections.Generic
 //open NiceString
 
+
+//https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/List.cs
+
+
 #nowarn "44" //for opening the hidden but not Obsolete UtilResizeArray module
 open UtilResizeArray
 
@@ -14,13 +18,13 @@ module Array =
     /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
     let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
         #if FABLE_COMPILER_JAVASCRIPT
-        unbox arr
+            unbox arr
         #else
-        if isNull arr then nullExn ": Array.asResizeArray"
-        let l = ResizeArray(arr.Length)
-        for i = 0 to arr.Length - 1 do
-            l.Add arr.[i]
-        l
+            if isNull arr then nullExn ": Array.asResizeArray"
+            let l = ResizeArray(arr.Length)
+            for i = 0 to arr.Length - 1 do
+                l.Add arr.[i]
+            l
         #endif
 
 /// The main module for functions on ResizeArray.
@@ -365,7 +369,7 @@ module ResizeArray =
         else
             let rec findBackIdx i =
                 if i = -1 then
-                    fail resizeArray "rotateUpTill: no item in the list meets the condition"
+                    fail resizeArray "rotateUpTillLast: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -375,7 +379,6 @@ module ResizeArray =
             let r = ResizeArray(resizeArray.Count)
             for i = fi + 1 to resizeArray.Count - 1 do
                 r.Add <| resizeArray.[i]
-
             for i = 0 to fi do
                 r.Add <| resizeArray.[i]
 
@@ -427,7 +430,7 @@ module ResizeArray =
             let k = resizeArray.Count
             let rec findIdx i =
                 if i = k then
-                    fail resizeArray "rotateDownTill: no item in the list meets the condition"
+                    fail resizeArray "rotateDownTillLast: no item in the list meets the condition"
                 elif condition resizeArray.[i] then
                     i
                 else
@@ -545,7 +548,8 @@ module ResizeArray =
             resizeArray.[j] <- ti
 
 
-    // internal, only for finding MinMax values
+    /// internal, only for finding MinMax values
+    [<RequireQualifiedAccess>]
     module private MinMax =
         //TODO test keeping of order if equal !
 
@@ -560,8 +564,6 @@ module ResizeArray =
         *)
 
         let inline simple2 cmpF (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 2 then
-                fail resizeArray "MinMax.simple2: Count must be at least two"
             let mutable m1 = resizeArray.[0]
             let mutable m2 = resizeArray.[1]
             for i = 1 to resizeArray.Count - 1 do
@@ -578,11 +580,11 @@ module ResizeArray =
         let inline sort3 cmp a b c =
             if a = b || cmp a b then
                 if cmp b c then a, b, c
-                else if cmp a c then a, c, b
+                elif cmp a c then a, c, b
                 else c, a, b
-            else if a = c || cmp a c then
+            elif a = c || cmp a c then
                 b, a, c
-            else if b = c || cmp b c then
+            elif b = c || cmp b c then
                 b, c, a
             else
                 c, b, a
@@ -595,18 +597,16 @@ module ResizeArray =
             let c = f cc
             if a = b || cmp a b then
                 if cmp b c then 0, 1, 2
-                else if cmp a c then 0, 2, 1
+                elif cmp a c then 0, 2, 1
                 else 2, 0, 1
-            else if a = c || cmp a c then
+            elif a = c || cmp a c then
                 1, 0, 2
-            else if b = c || cmp b c then
+            elif b = c || cmp b c then
                 1, 2, 0
             else
                 2, 1, 0
 
         let inline simple3 cmpF (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 3 then
-                fail resizeArray "MinMax.simple3: Count must be at least three"
             let e1 = resizeArray.[0]
             let e2 = resizeArray.[1]
             let e3 = resizeArray.[2]
@@ -626,8 +626,6 @@ module ResizeArray =
             m1, m2, m3
 
         let inline indexByFun cmpF func (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 1 then
-                fail resizeArray "MinMax.indexByFun: Count must be at least one"
             let mutable f = func resizeArray.[0]
             let mutable mf = f
             let mutable ii = 0
@@ -639,8 +637,6 @@ module ResizeArray =
             ii
 
         let inline index2ByFun cmpF func (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 2 then
-                fail resizeArray "MinMax.index2ByFun: Count must be at least two"
             let mutable i1 = 0
             let mutable i2 = 1
             let mutable mf1 = func resizeArray.[i1]
@@ -659,8 +655,6 @@ module ResizeArray =
             i1, i2
 
         let inline index3ByFun (cmpOp: 'U -> 'U -> bool) (byFun: 'T -> 'U) (resizeArray: ResizeArray<'T>) =
-            if resizeArray.Count < 3 then
-                fail resizeArray "MinMax.index3ByFun: Count must be at least three"
             // sort first 3
             let mutable i1, i2, i3 = indexOfSort3By byFun cmpOp resizeArray.[0] resizeArray.[1] resizeArray.[2] // otherwise would fail on sorting first 3, test on ResizeArray([5;6;3;1;2;0])|> ResizeArray.max3
             let mutable e1 = byFun resizeArray.[i1]
@@ -720,14 +714,16 @@ module ResizeArray =
 
     /// Returns the smallest and the second smallest element of the ResizeArray.
     /// If they are equal then the order is kept
-    let inline min2 resizeArray =
+    let inline min2 (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min2"
+        if resizeArray.Count < 2 then fail resizeArray "min2: Count must be at least two"
         resizeArray |> MinMax.simple2 (<)
 
     /// Returns the biggest and the second biggest element of the ResizeArray.
     /// If they are equal then the  order is kept
-    let inline max2 resizeArray =
+    let inline max2 (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max2"
+        if resizeArray.Count < 2 then fail resizeArray "max2: Count must be at least two"
         resizeArray |> MinMax.simple2 (>)
 
     // TODO make consistent xml docstring on below functions:
@@ -735,31 +731,35 @@ module ResizeArray =
     /// Returns the smallest and the second smallest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min2By f resizeArray =
+    let inline min2By f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min2By"
+        if resizeArray.Count < 2 then fail resizeArray "min2By: Count must be at least two"
         let i, ii = resizeArray |> MinMax.index2ByFun (<) f
         resizeArray.[i], resizeArray.[ii]
 
     /// Returns the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max2By f resizeArray =
+    let inline max2By f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max2By"
+        if resizeArray.Count < 2 then fail resizeArray "max2By: Count must be at least two"
         let i, ii = resizeArray |> MinMax.index2ByFun (>) f
         resizeArray.[i], resizeArray.[ii]
 
     /// Returns the indices of the smallest and the second smallest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min2IndicesBy f resizeArray =
+    let inline min2IndicesBy f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min2IndicesBy"
+        if resizeArray.Count < 2 then fail resizeArray "min2IndicesBy: Count must be at least two"
         resizeArray |> MinMax.index2ByFun (<) f
 
     /// Returns the indices of the biggest and the second biggest element of the ResizeArray.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max2IndicesBy f resizeArray =
+    let inline max2IndicesBy f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max2IndicesBy"
+        if resizeArray.Count < 2 then fail resizeArray "max2IndicesBy: Count must be at least two"
         resizeArray |> MinMax.index2ByFun (>) f
 
     [<Obsolete("use min2IndicesBy instead.")>]
@@ -771,23 +771,26 @@ module ResizeArray =
     /// Returns the smallest three elements of the ResizeArray.
     /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
     /// If they are equal then the order is kept
-    let inline min3 resizeArray =
+    let inline min3 (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min3"
+        if resizeArray.Count < 3 then fail resizeArray "min3: Count must be at least three"
         resizeArray |> MinMax.simple3 (<)
 
     /// Returns the biggest three elements of the ResizeArray.
     /// The first element is the biggest, the second is the second biggest and the third is the third biggest.
     /// If they are equal then the order is kept
-    let inline max3 resizeArray =
+    let inline max3 (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max3"
+        if resizeArray.Count < 3 then fail resizeArray "max3: Count must be at least three"
         resizeArray |> MinMax.simple3 (>)
 
     /// Returns the smallest three elements of the ResizeArray.
     /// The first element is the smallest, the second is the second smallest and the third is the third smallest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min3By f resizeArray =
+    let inline min3By f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min3By"
+        if resizeArray.Count < 3 then fail resizeArray "min3By: Count must be at least three"
         let i, ii, iii = resizeArray |> MinMax.index3ByFun (<) f
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
@@ -795,8 +798,9 @@ module ResizeArray =
     /// The first element is the biggest, the second is the second biggest and the third is the third biggest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max3By f resizeArray =
+    let inline max3By f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max3By"
+        if resizeArray.Count < 3 then fail resizeArray "max3By: Count must be at least three"
         let i, ii, iii = resizeArray |> MinMax.index3ByFun (>) f
         resizeArray.[i], resizeArray.[ii], resizeArray.[iii]
 
@@ -804,16 +808,18 @@ module ResizeArray =
     /// The first element is the index of the smallest, the second is the index of the second smallest and the third is the index of the third smallest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline min3IndicesBy f resizeArray =
+    let inline min3IndicesBy f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "min3IndicesBy"
+        if resizeArray.Count < 3 then fail resizeArray "min3IndicesBy: Count must be at least three"
         resizeArray |> MinMax.index3ByFun (<) f
 
     /// Returns the indices of the three biggest elements of the ResizeArray.
     /// The first element is the index of the biggest, the second is the index of the second biggest and the third is the index of the third biggest.
     /// Elements are compared by applying the predicate function first.
     /// If they are equal after function is applied then the order is kept
-    let inline max3IndicesBy f resizeArray =
+    let inline max3IndicesBy f (resizeArray:ResizeArray<'T>) =
         if isNull resizeArray then nullExn "max3IndicesBy"
+        if resizeArray.Count < 3 then fail resizeArray "max3Indices: Count must be at least three"
         resizeArray |> MinMax.index3ByFun (>) f
 
     [<Obsolete("use min3IndicesBy instead.")>]
@@ -986,7 +992,7 @@ module ResizeArray =
         for i = 0 to len - 1 do
             let el = resizeArray.[i]
             if predicate1 el then p1True.Add el
-            else if predicate2 el then p2True.Add el
+            elif predicate2 el then p2True.Add el
             else allFalse.Add el
 
         p1True, p2True, allFalse
@@ -1011,8 +1017,8 @@ module ResizeArray =
         for i = 0 to len - 1 do
             let el = resizeArray.[i]
             if predicate1 el then p1True.Add el
-            else if predicate2 el then p2True.Add el
-            else if predicate3 el then p3True.Add el
+            elif predicate2 el then p2True.Add el
+            elif predicate3 el then p3True.Add el
             else allFalse.Add el
 
         p1True, p2True, p3True, allFalse
@@ -1040,9 +1046,9 @@ module ResizeArray =
         for i = 0 to len - 1 do
             let el = resizeArray.[i]
             if predicate1 el then p1True.Add el
-            else if predicate2 el then p2True.Add el
-            else if predicate3 el then p3True.Add el
-            else if predicate4 el then p4True.Add el
+            elif predicate2 el then p2True.Add el
+            elif predicate3 el then p3True.Add el
+            elif predicate4 el then p4True.Add el
             else allFalse.Add el
         p1True, p2True, p3True, p4True, allFalse
 
@@ -1059,7 +1065,8 @@ module ResizeArray =
         if isNull resizeArray then nullExn "applyIfInputAndResult"
         if inputPredicate resizeArray then
             let r = transform resizeArray
-            if resultPredicate r then r else resizeArray
+            if resultPredicate r then r
+            else resizeArray
         else
             resizeArray
 
@@ -1089,23 +1096,46 @@ module ResizeArray =
     /// <param name="predicate">The function to test the current index.</param>
     /// <param name="resizeArray">The input ResizeArray.</param>
     /// <returns>A ResizeArray containing the elements for which the given predicate returns true.</returns>
-    let inline filteri (predicate: int -> bool) (resizeArray: ResizeArray<'T>) =
+    let inline filteri (predicate: int -> 'T-> bool) (resizeArray: ResizeArray<'T>) =
         if isNull resizeArray then nullExn "filteri"
         let res = ResizeArray()
         for i = 0 to resizeArray.Count - 1 do
-            if predicate i then
-                res.Add(resizeArray.[i])
+            let t = resizeArray.[i]
+            if predicate i t then
+                res.Add(t)
         res
 
+    /// <summary>Returns the index of the first element in the ResizeArray that satisfies the given indexed predicate.</summary>
+    /// <param name="predicate">The function to test each indexed element against.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>The index of the first element that satisfies the predicate, or None if not found.</returns>
+    let inline tryFindIndexi (predicate:int -> 'T -> bool) (resizeArray: ResizeArray<'T>) : option<int> =
+        if isNull resizeArray then nullExn "tryFindIndexi"
+        let rec loop i =
+            if i = resizeArray.Count then None
+            elif predicate i resizeArray.[i] then Some i
+            else loop (i + 1)
+        loop 0
+
+    /// <summary>Returns the index of the first element in the ResizeArray that satisfies the given indexed predicate.</summary>
+    /// <param name="predicate">The function to test each indexed element against.</param>
+    /// <param name="resizeArray">The input ResizeArray.</param>
+    /// <returns>The index of the first element that satisfies the predicate, or an exception.</returns>
+    /// <exception cref="System.KeyNotFoundException">Thrown when no element satisfies the predicate.</exception>
+    let findIndexi (predicate:int -> 'T -> bool) (resizeArray: ResizeArray<'T>) =
+        if isNull resizeArray then nullExn "findIndexi"
+        match tryFindIndexi predicate resizeArray with
+        | Some i -> i
+        | None -> failKey resizeArray "findIndexi did not find for given predicate in"
 
 
 
-
-
-
-
-
-
+    //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------------
     // ------------- implementation adapted form FSharp.Core Array module: ------------------------------------------------
     //
@@ -1113,6 +1143,13 @@ module ResizeArray =
     //               https://github.com/fsprojects/FSharpx.Collections/blob/master/src/FSharpx.Collections/ResizeArray.fs
     //               https://github.com/jack-pappas/ExtCore/blob/master/ExtCore/Collections.ResizeArray.fs
     //               https://github.com/dotnet/fsharp/tree/master/src/utils
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
     //---------------------------------------------------------------------------------------------------------------------
 
 
@@ -1473,11 +1510,13 @@ module ResizeArray =
 
             temp
 
+    //https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/List.cs
 
-
-    /// <summary>Returns an empty ResizeArray of the given type. With initial capacity zero.</summary>
-    /// <returns>The empty ResizeArray.</returns>
+    /// <summary> Returns a new empty ResizeArray of the given type. With initial capacity zero.
+    /// Upon adding the first element to the ResizeArray an internal Array of size 4 is allocated, and then increased in multiples of two
+    /// as required. </summary>
     [<GeneralizableValue>]
+    [<RequiresExplicitTypeArguments>] // without this it does no create a new ResizeArray, see https://github.com/fsharp/fslang-suggestions/issues/602
     let inline empty<'T> : ResizeArray<'T> =
         ResizeArray<'T>()
 
@@ -1618,7 +1657,7 @@ module ResizeArray =
         let rec loop i =
             if i < 0 then
                 failKey resizeArray "findBack did not find for given predicate in"
-            else if predicate resizeArray.[i] then
+            elif predicate resizeArray.[i] then
                 resizeArray.[i]
             else
                 loop (i - 1)
@@ -2861,7 +2900,7 @@ module ResizeArray =
         if isNull resizeArray then nullExn "tryFindBack"
         let rec loop i =
             if i < 0 then None
-            else if predicate resizeArray.[i] then Some resizeArray.[i]
+            elif predicate resizeArray.[i] then Some resizeArray.[i]
             else loop (i - 1)
         loop ((resizeArray.Count - 1))
 
@@ -2888,7 +2927,7 @@ module ResizeArray =
         if isNull resizeArray then nullExn "tryFindIndexBack"
         let rec loop i =
             if i < 0 then None
-            else if predicate resizeArray.[i] then Some i
+            elif predicate resizeArray.[i] then Some i
             else loop (i - 1)
         loop ((resizeArray.Count - 1))
 

@@ -371,7 +371,7 @@ module Module2 =
 
     testCase "ResizeArray.Of_Seq" <| fun _ ->
         // integer array
-        let resultInt = ResizeArray.ofSeq {1..10}
+        let resultInt = ResizeArray.ofSeq (seq{1..10})
         if resultInt <!> [|1..10 |].asRarr then Assert.Fail()
 
         // string array
@@ -1520,7 +1520,7 @@ module Module2 =
 
     testCase "ResizeArray.filteri " <| fun _ ->
         let arr = [|'a';'b';'c'|].asRarr
-        let result = arr|> ResizeArray.filteri (fun i -> i % 2 = 0)
+        let result = arr|> ResizeArray.filteri (fun i _ -> i % 2 = 0)
         Assert.AreEqual([|'a';'c'|].asRarr , result)
         Assert.AreNotEqual(arr, result,"input array should not be modified")
 

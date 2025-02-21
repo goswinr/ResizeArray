@@ -115,6 +115,7 @@ module ExtensionOnArray =
     //let inline (<!!!>) (a:ResizeArray<'T>*ResizeArray<'T>*ResizeArray<'T>) (b:ResizeArray<'T>*ResizeArray<'T>*ResizeArray<'T>) = not <| ResizeArray.equals (t1 a) (t1 b) && not <| ResizeArray.equals (t2 a) (t2 b) && not <| ResizeArray.equals (t3 a) (t3 b)
     //let inline (<!>) a b = not <| ResizeArray.equals a b
 
+    /// shallow structural equality
     let inline (==) (a:ResizeArray<'T>) b =  ResizeArray.equals a b
     let inline (<!>) (a:ResizeArray<'T>) b =  not (ResizeArray.equals a b)
     let inline (=++=) (a:ResizeArray<'T>*ResizeArray<'T>) (b:ResizeArray<'T>*ResizeArray<'T>) = (fst a == fst b) && (snd a == snd b)
@@ -168,14 +169,16 @@ module Module =
         Assert.False (ResizeArray.equals3 a c)
 
     testCase "ResizeArray.Empty() " <| fun _ ->
-        let emptyArray = ResizeArray.empty
+        let emptyArray = ResizeArray.empty<int>
         if ResizeArray.length emptyArray <> 0 then Assert.Fail()
 
         let c : int ResizeArray   = ResizeArray.empty<int>
         Assert.True( (c == [|   |].asRarr) )
 
-        let d : string ResizeArray = ResizeArray.empty<string>
+        let d = ResizeArray.empty<string>
         Assert.True( (d == [|   |].asRarr) )
+        d.Add("a")
+        Assert.True( (d == [| "a"  |].asRarr) )
         ()
 
 
@@ -399,8 +402,8 @@ module Module =
 
     testCase "ResizeArray.Except() " <| fun _ ->
         // integer array
-        let intArr1 = [| yield! {1..100}
-                         yield! {1..100}  |].asRarr
+        let intArr1 = [| yield! seq{1..100}
+                         yield! seq{1..100}  |].asRarr
         let intArr2 = [| 1 .. 10  |].asRarr
         let expectedIntArr = [| 11 .. 100  |].asRarr
 
@@ -1082,7 +1085,7 @@ module Module =
         Assert.AreEqual("third", strResult.Value)
 
         // Empty array
-        let emptyResult = ResizeArray.tryLast ResizeArray.empty
+        let emptyResult = ResizeArray.tryLast ResizeArray.empty<int>
         Assert.True(emptyResult.IsNone)
 
         // null array
@@ -1931,8 +1934,8 @@ module Module =
 
     testCase "ResizeArray.SlicingEmptyArray() " <| fun _ ->
 
-        let empty : obj ResizeArray = ResizeArray.empty
-        Assert.AreEqual(empty.[*], ([| |].asRarr: obj ResizeArray))
+        let empty = ResizeArray.empty<int>
+        Assert.AreEqual(empty.[*], ([| |].asRarr: ResizeArray<int>))
         throwsIdx   (fun () -> empty.[5..3] |> ignore )
         throwsIdx   (fun () -> empty.[0..]  |> ignore )
         throwsIdx   (fun () -> empty.[0..0] |> ignore )

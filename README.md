@@ -10,30 +10,41 @@
 ![code size](https://img.shields.io/github/languages/code-size/goswinr/ResizeArray.svg)
 
 
-ResizeArray is an F# extension and module library for `ResizeArray<'T>` ( = `Collection.Generic.List<'T>`)
+ResizeArray is an F# extension and module library for `ResizeArray<'T>` ( = `Collection.Generic.List<'T>`).\
+It provides all the functions from the `Array` module in `FSharp.Core` for `ResizeArray`.\
+And more.
 
-It also works in JS and TS with [Fable](https://fable.io/).
+It also works in Javascript and Typescript with [Fable](https://fable.io/).
 
-This library was designed for use with F# scripting.
-Functions and methods never return null.
-Only functions starting with `try...` will return an F# Option.
-Otherwise when a function fails on invalid input it will throw a descriptive exception.
+This library was designed for use with F# scripting.\
+Functions and methods never return null.\
+When a function fails on invalid input it will throw a descriptive exception.\
+Functions starting with `try...` will return an F# option.
 
-I was always annoyed that an IndexOutOfRangeException does not include the actual index that was out of bounds nor the actual size of the array.
-This library fixes that in `resizeArray.Get`, `resizeArray.Set`, `resizeArray.Slice` and other item access functions.
+I was always annoyed that an `IndexOutOfRangeException` does not include the actual bad index nor the actual size of the array.\
+This library fixes that in `resizeArray.Get`, `resizeArray.Set`, `resizeArray.Slice` and all other item access functions.\
+I made a similar a similar library for `array<'T>`: https://github.com/goswinr/ArrayT/ .
+
+### Why ?
+Yes, F#'s array and list modules can do these kind of operations on collections too.\
+But ResizeArray (being mutable)  still offers the best performance for collections that can expand & shrink and need random access via an index.\
+In fact FSharp.Core uses [a very similar module internally](https://github.com/dotnet/fsharp/blob/main/src/Compiler/Utilities/ResizeArray.fs).
 
 ### It Includes:
 
-- A `ResizeArray` module that has a corresponding functions for  **all**  functions in the  [`Array` module from `FSharp.Core`](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-arraymodule.html). Including those for parallel computing.
+- A `ResizeArray` module that has  **all**  functions from [`Array` module from `FSharp.Core`] reimplemented (https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-arraymodule.html).\
+ Including the sub module for Parallel computing.
+
 - A  Computational Expressions `resizeArray` that can be used like existing ones for `seq`.
-- Support for F# slicing operator and indexing from the end. e.g: `items.[ 1 .. ^1]`
-- Extension members on `ResizeArray` like `.Get` `.Set` `.First` `.Last` `.SecondLast` and more.
+
+- Support for F# slicing operator and indexing from the end. e.g: `items.[ 1 .. ^1]`.
+
+- Extension members on `ResizeArray` like `.Get` `.Set` `.First` `.Last` `.SecondLast` and more.\
 With nicer IndexOutOfRangeExceptions that include the bad index and the actual size.
 
-- **All** Tests from the from `FSharp.Core`'s `Array` module ported and adapted to run in both javascript and dotnet.
+- All Tests from the from `FSharp.Core`'s `Array` module ported and adapted to run in both javascript and dotnet.
 
 
-See also https://github.com/goswinr/ArrayT/ for a similar library for `array<'T>`.
 
 ### Usage
 Just open the namespace
@@ -61,12 +72,6 @@ let oddNumbers = evenNumbers |> ResizeArray.map (fun x -> x + 1) // ResizeArray 
 let hundred = oddNumbers.Last // Extension member to access the last item in list
 
 ```
-
-### Why ?
-Yes, F# Arrays and (linked) Lists can do these kind of operations on collections too.
-But ResizeArray (being mutable)  still offers the best performance for collections that expand or shrink and need random access.
-
-In fact FSharp.Core uses [a very similar module internally](https://github.com/dotnet/fsharp/blob/main/src/Compiler/Utilities/ResizeArray.fs)
 
 ### Full API Documentation
 

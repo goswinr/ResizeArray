@@ -7,26 +7,28 @@ open System.Collections.Generic
 /// to combines the contents of two Sequences or ICollection<'T> into a new ResizeArray
 module Operators =
 
-    /// Operator +++ to copies the contents of two Sequences into a new ResizeArray
-    let inline (+++) (a : seq<'T>) ( b : seq<'T>) =
+    /// Operator +++ to shallow copy the contents of two Sequences (IEnumerable<'T>) into a new ResizeArray
+    /// On ICollection<'T> you can alo use the operator ++ which is more optimized .
+    let inline (+++) (a : seq<'T>) ( b : seq<'T>)  : ResizeArray<'T> =
         let r = new ResizeArray<'T>()
         r.AddRange a
         r.AddRange b
         r
 
-    /// Operator ++ to copies the contents of two ICollection<'T> into a new ResizeArray.
+    /// Operator ++ to shallow copy the contents of two ICollection<'T> into a new ResizeArray.
     /// The capacity of the new ResizeArray is the sum of the count of the two ICollection<'T>.
-    let inline (++) (a : ICollection<'T>) ( b : ICollection<'T>) =
-        let c: int = a.Count + b.Count
-        let l = new ResizeArray<'T>(c)
+    /// This version is more optimized than the operator +++ for sequences. because it can preallocate the needed space correctly.
+    let inline (++) (a : ICollection<'T>) ( b : ICollection<'T>) : ResizeArray<'T> =
+        let l = new ResizeArray<'T>( a.Count + b.Count)
         l.AddRange a
         l.AddRange b
-        ResizeArray(l)
+        l
+
 
 [<Obsolete("not Obsolete but hidden, needs to be visible for inlining")>]
 module UtilResizeArray =
 
-        /// Converts negative indices to positive ones.
+    /// Converts negative indices to positive ones.
     /// Correct results from -length up to length-1
     /// e.g.: -1 is  last item .
     /// (from the release of F# 5 on a negative index can also be done with '^' prefix. E.g. ^0 for the last item)
@@ -95,30 +97,62 @@ module UtilResizeArray =
             b.ToString()
         else
             ""
-
+    /// Throws an ArgumentNullException with a message that includes the function name.
     let nullExn (funcName:string) =
         raise (ArgumentNullException("ResizeArray." + funcName + ": input is null!"))
 
+    /// Throws an IndexOutOfRangeException for getting a bad index with a message that includes the content of the ResizeArray.
     let badGetExn (i:int) (arr:ResizeArray<'T>) (funcName:string) =
         let t = typeOfName<'T>()
         raise (IndexOutOfRangeException($"ResizeArray.{funcName}: Can't get index {i} from:\n{toStringCore t arr}{contentAsString 5 arr}"))
 
+    /// Throws an IndexOutOfRangeException for setting a bad index with a message that includes the content of the ResizeArray.
     let badSetExn (i:int) (arr:ResizeArray<'T>) (funcName:string) (doingSet:'T) =
         let t = typeOfName<'T>()
         raise (IndexOutOfRangeException($"ResizeArray.{funcName}: Can't set index {i} to {doingSet} on:\n{toStringCore t arr}{contentAsString 5 arr}"))
 
-
+    /// Throws an ArgumentException with a message that includes the content of the ResizeArray.
     let fail (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
         raise (ArgumentException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
 
+    /// Throws an ArgumentException with.
     let failSimpel (funcAndReason:string)  =
         raise (ArgumentException($"ResizeArray.{funcAndReason}"))
 
+    /// Throws a KeyNotFoundException with a message that includes the content of the ResizeArray.
     let failKey (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
         raise (KeyNotFoundException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
 
+    /// Throws an IndexOutOfRangeException with a message that includes the content of the ResizeArray.
     let failIdx (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
         raise (IndexOutOfRangeException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
+
+
+    /// A simple simple Wrapper for a ResizeArray.
+    /// The sole purpose is to provide a better Exception message when an index is out of range.
+    type DebugIndexer<'T>(arr:ResizeArray<'T>) = // [<Struct>] would fails for setter !
+        member this.Item
+            with get(i) =
+                if i < 0 || i >= arr.Count then badGetExn i arr "DebugIdx.[i]"
+                arr.[i]
+
+            and set(i) (x:'T) =
+                if i < 0 || i >= arr.Count then badSetExn i arr "DebugIdx.[i]" x
+                arr.[i] <- x
+
+        member this.Count = arr.Count
+
+        member this.Array = arr
+
+        override this.ToString() =
+            let t =
+            #if FABLE_COMPILER
+                "'T"
+            #else
+                (typeof<'T>).Name
+            #endif
+            $"DebugIndexer for {toStringCore t arr}{contentAsString 5 arr}"
+

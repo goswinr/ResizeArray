@@ -13,6 +13,15 @@ open UtilResizeArray
 module AutoOpenResizeArrayExtensions =
 
     type List<'T> with
+
+
+        /// Use for Debugging index get/set operations.
+        /// Just replace 'myList.[3]' with 'myList.DebugIdx.[3]'
+        /// Throws a nice descriptive Exception if the index is out of range
+        /// including the bad index and the ResizeArray content.
+        member xs.DebugIdx =
+            new DebugIndexer<'T>(xs)
+
         /// Gets an item at index, same as this.[index] or this.Idx(index)
         /// Throws a descriptive Exception if the index is out of range.
         /// (Use this.GetNeg(i) member if you want to use negative indices too)
