@@ -3,14 +3,14 @@
   "isRoot": true,
   "tools": {
     "fable": {
-      "version": "4.24.0",
+      "version": "5.0.0-alpha.10",
       "commands": [
         "fable"
       ],
       "rollForward": false
     },
     "fsdocs-tool": {
-      "version": "20.0.1",
+      "version": "21.0.0-beta-004",
       "commands": [
         "fsdocs"
       ],
