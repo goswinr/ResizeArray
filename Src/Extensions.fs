@@ -183,32 +183,7 @@ module AutoOpenResizeArrayExtensions =
             this.GetRange(0, this.Count) // fastest way to create a shallow copy
 
 
-        /// A string representation of the ResizeArray including the count of entries and the first 5 entries.
-        /// When used in Fable this member is inlined for reflection to work.
-        #if FABLE_COMPILER
-        member inline arr.AsString : string =  // inline needed for Fable reflection
-        #else
-        member arr.AsString  :string =  // on .NET inline fails because it's using internal DefaultDictUtil
-        #endif
-            let t = toStringInline arr
-            $"{t}{contentAsString 5 arr}"
 
-
-        /// A string representation of the ResizeArray including the count of entries
-        /// and the specified amount of entries.
-        /// When used in Fable this member is inlined for reflection to work.
-        #if FABLE_COMPILER
-        member inline arr.ToString (entriesToPrint)  : string =  // inline needed for Fable reflection
-        #else
-        member arr.ToString (entriesToPrint)  : string  = // on .NET inline fails because it's using internal DefaultDictUtil
-        #endif
-            let t = toStringInline arr
-            $"{t}{contentAsString entriesToPrint arr}"
-
-
-        // override xs.ToString() =  // override is not allowed a extension member
-        //     let t = typeOfName<'T>()
-        //     $"{toStringCore t xs}{contentAsString 2 xs}"
 
 
         /// Shallow Structural equality comparison.
@@ -374,6 +349,33 @@ module AutoOpenResizeArrayExtensions =
             if xs.Count < count then failSimpel $"FailIfLessThan {count}: {errorMessage}"
             xs
 
+
+        /// A string representation of the ResizeArray including the count of entries and the first 5 entries.
+        /// When used in Fable this member is inlined for reflection to work.
+        #if FABLE_COMPILER
+        member inline arr.AsString : string =  // inline needed for Fable reflection
+        #else
+        member arr.AsString  :string =  // on .NET inline fails because it's using internal DefaultDictUtil
+        #endif
+            let t = toStringInline arr
+            $"{t}{contentAsString 5 arr}"
+
+
+        /// A string representation of the ResizeArray including the count of entries
+        /// and the specified amount of entries.
+        /// When used in Fable this member is inlined for reflection to work.
+        #if FABLE_COMPILER
+        member inline arr.ToString (entriesToPrint:int)  : string =  // inline needed for Fable reflection
+        #else
+        member arr.ToString (entriesToPrint:int)  : string  = // on .NET inline fails because it's using internal DefaultDictUtil
+        #endif
+            let t = toStringInline arr
+            $"{t}{contentAsString entriesToPrint arr}"
+
+
+        // override xs.ToString() =  // override is not allowed a extension member
+        //     let t = typeOfName<'T>()
+        //     $"{toStringCore t xs}{contentAsString 2 xs}"
 
         /// A property like the ToString() method,
         /// But with richer formatting

@@ -82,7 +82,7 @@ module UtilResizeArray =
     /// Returns a string with the content of the ResizeArray up to 'entriesToPrint' entries.
     /// Includes the index of each entry.
     /// Includes the last entry.
-    let contentAsString (entriesToPrint) (arr:ResizeArray<'T>) = // on .NET inline fails because it's using internal DefaultDictUtil
+    let contentAsString entriesToPrint (arr:ResizeArray<'T>) = // on .NET inline fails because it's using internal DefaultDictUtil
         let c = arr.Count
         if c > 0 && entriesToPrint > 0 then
             let b = Text.StringBuilder()
@@ -97,6 +97,8 @@ module UtilResizeArray =
             b.ToString()
         else
             ""
+
+
     /// Throws an ArgumentNullException with a message that includes the function name.
     let nullExn (funcName:string) =
         raise (ArgumentNullException("ResizeArray." + funcName + ": input is null!"))
@@ -104,31 +106,31 @@ module UtilResizeArray =
     /// Throws an IndexOutOfRangeException for getting a bad index with a message that includes the content of the ResizeArray.
     let badGetExn (i:int) (arr:ResizeArray<'T>) (funcName:string) =
         let t = typeOfName<'T>()
-        raise (IndexOutOfRangeException($"ResizeArray.{funcName}: Can't get index {i} from:\n{toStringCore t arr}{contentAsString 5 arr}"))
+        raise (IndexOutOfRangeException $"ResizeArray.{funcName}: Can't get index {i} from:\n{toStringCore t arr}{contentAsString 5 arr}")
 
     /// Throws an IndexOutOfRangeException for setting a bad index with a message that includes the content of the ResizeArray.
     let badSetExn (i:int) (arr:ResizeArray<'T>) (funcName:string) (doingSet:'T) =
         let t = typeOfName<'T>()
-        raise (IndexOutOfRangeException($"ResizeArray.{funcName}: Can't set index {i} to {doingSet} on:\n{toStringCore t arr}{contentAsString 5 arr}"))
+        raise (IndexOutOfRangeException $"ResizeArray.{funcName}: Can't set index {i} to {doingSet} on:\n{toStringCore t arr}{contentAsString 5 arr}")
 
     /// Throws an ArgumentException with a message that includes the content of the ResizeArray.
     let fail (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
-        raise (ArgumentException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
+        raise (ArgumentException $"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}")
 
     /// Throws an ArgumentException with.
     let failSimpel (funcAndReason:string)  =
-        raise (ArgumentException($"ResizeArray.{funcAndReason}"))
+        raise (ArgumentException $"ResizeArray.{funcAndReason}")
 
     /// Throws a KeyNotFoundException with a message that includes the content of the ResizeArray.
     let failKey (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
-        raise (KeyNotFoundException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
+        raise (KeyNotFoundException $"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}")
 
     /// Throws an IndexOutOfRangeException with a message that includes the content of the ResizeArray.
     let failIdx (arr:ResizeArray<'T>) (funcAndReason:string)  =
         let t = typeOfName<'T>()
-        raise (IndexOutOfRangeException($"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}"))
+        raise (IndexOutOfRangeException $"ResizeArray.{funcAndReason}:\n{toStringCore t arr}{contentAsString 5 arr}")
 
 
     /// A simple simple Wrapper for a ResizeArray.
