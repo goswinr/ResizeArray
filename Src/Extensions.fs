@@ -251,6 +251,7 @@ module AutoOpenResizeArrayExtensions =
 
         /// This member enables F# slicing notation operator. e.g:  xs.[1..3].
         /// The resulting ResizeArray includes the end index.
+        /// xs.[0 .. -1] will return an empty ResizeArray.
         /// Raises an ArgumentException if indices are out of range.
         /// For indexing from the end use the ^ prefix. e.g. ^0 for the last item.
         member xs.GetSlice(startIdx: option<int>, endIdx: option<int>) : ResizeArray<'T> =
@@ -268,13 +269,16 @@ module AutoOpenResizeArrayExtensions =
                 match endIdx with
                 | None -> count - 1
                 | Some ei ->
-                    if ei < 0 || ei >= count then
-                        failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: end index must be between 0 and {count - 1} for ResizeArray of {count} items."
+                    if ei < -1 || ei >= count then // -1 is ok to get an empty slice when startIdx is 0
+                        failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: end index must be between -1 and {count - 1} for ResizeArray of {count} items."
                     else
                         ei
 
+
             // end must be same or bigger than start
-            if enIdx >= 0 && stIdx > enIdx then
+            // if enIdx >= 0 && stIdx > enIdx then
+            let len = enIdx - stIdx + 1
+            if len < 0 then
                 failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], The given start index must be smaller than or equal to the end index for ResizeArray of {count} items."
 
             xs.GetRange(stIdx, enIdx - stIdx + 1)

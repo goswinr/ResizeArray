@@ -58,7 +58,7 @@ module UtilResizeArray =
                 $"ResizeArray<{ofType}> with {arr.Count} items"
 
     let inline toStringInline (arr:ResizeArray<'T>) = // inline needed for Fable reflection
-        let t = (typeof<'T>).Name //  Fable reflection works only inline
+        let t = typeof<'T>.Name //  Fable reflection works only inline
         toStringCore t arr
 
     // -------------------------------------------------------------
@@ -70,7 +70,7 @@ module UtilResizeArray =
         #if FABLE_COMPILER
             "'T"
         #else
-            (typeof<'T>).Name
+            typeof<'T>.Name
         #endif
 
 
@@ -78,6 +78,14 @@ module UtilResizeArray =
         match i with
         | None -> " "
         | Some i -> i.ToString()
+
+
+    let itemInOneLineWithMaxChars charCount (item:'T) =
+        let s =  $"{item}".Split('\n') |> Array.map (fun l -> l.Trim()) |> String.concat " "
+        if s.Length > charCount then
+            s.Substring(0, charCount) + " ..."
+        else
+            s
 
     /// Returns a string with the content of the ResizeArray up to 'entriesToPrint' entries.
     /// Includes the index of each entry.
@@ -88,12 +96,12 @@ module UtilResizeArray =
             let b = Text.StringBuilder()
             b.AppendLine ":"  |> ignore
             for i,t in arr |> Seq.truncate (max 0 entriesToPrint) |> Seq.indexed do
-                b.AppendLine $"  {i}: {t}" |> ignore
+                b.AppendLine $"  {i}: {itemInOneLineWithMaxChars 200 t}" |> ignore
             if c = entriesToPrint+1 then
-                b.AppendLine $"  {c-1}: {arr[c-1]}" |> ignore // print one more line if it's the last instead of "..."
+                b.AppendLine $"  {c-1}: {itemInOneLineWithMaxChars 200 arr[c-1]}" |> ignore // print one more line if it's the last instead of "..."
             elif c > entriesToPrint + 1  then
                 b.AppendLine "  ..." |> ignore
-                b.AppendLine $"  {c-1}: {arr[c-1]}" |> ignore
+                b.AppendLine $"  {c-1}: {itemInOneLineWithMaxChars 200 arr[c-1]}" |> ignore
             b.ToString()
         else
             ""
