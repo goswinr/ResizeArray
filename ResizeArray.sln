@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ResizeArray", "Src\ResizeArray.fsproj", "{7B16A7A1-284E-4521-8D10-927FB661BB11}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ResizeArrayT", "Src\ResizeArrayT.fsproj", "{7B16A7A1-284E-4521-8D10-927FB661BB11}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{633F4609-147F-40DD-A0AF-24B685333AB7}"
 EndProject

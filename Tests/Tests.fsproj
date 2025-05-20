@@ -10,7 +10,7 @@
     <PackageReference Include="Fable.Mocha" Version="2.17.0" />
     <PackageReference Include="Expecto" Version="10.2.3" />
     <PackageReference Include="FSharp.Core" Version="9.0.300" /><!-- `Include` syntax for dependabot -->
-    <ProjectReference Include="../Src/ResizeArray.fsproj" />
+    <ProjectReference Include="../Src/ResizeArrayT.fsproj" />
     <Compile Include="Module.fs" />
     <Compile Include="Module2.fs" />
     <Compile Include="Extensions.fs" />

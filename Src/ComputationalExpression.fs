@@ -1,10 +1,10 @@
-﻿namespace ResizeArray
+﻿namespace ResizeArrayT
 
 open System
 
 
 
-/// This module is automatically opened when the namespace ResizeArray is opened.
+/// This module is automatically opened when the namespace ResizeArrayT is opened.
 /// It provides a computational expression builder for ResizeArray<'T>.
 /// <c>resizeArray { ... }</c>
 /// This builder allows you to create a ResizeArray just like you would create a IEnumerable with seq expressions <c>seq { ... }</c>.

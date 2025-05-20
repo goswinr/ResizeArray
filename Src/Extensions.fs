@@ -1,4 +1,4 @@
-namespace ResizeArray
+namespace ResizeArrayT
 
 open System
 open System.Collections.Generic
@@ -8,7 +8,7 @@ open System.Collections.Generic
 open UtilResizeArray
 
 /// Extension methods for ResizeArray<'T>.
-/// This module is automatically opened when the namespace ResizeArray is opened.
+/// This module is automatically opened when the namespace ResizeArrayT is opened.
 [<AutoOpen>]
 module AutoOpenResizeArrayExtensions =
 

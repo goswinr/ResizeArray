@@ -1,6 +1,6 @@
 namespace Tests
 
-open ResizeArray
+open ResizeArrayT
 
 module Main =
 

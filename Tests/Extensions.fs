@@ -1,7 +1,7 @@
 namespace Tests
 module Extensions =
 
-    open ResizeArray
+    open ResizeArrayT
 
 
     #if FABLE_COMPILER

@@ -1,4 +1,4 @@
-namespace ResizeArray
+namespace ResizeArrayT
 
 open System
 open System.Collections.Generic
