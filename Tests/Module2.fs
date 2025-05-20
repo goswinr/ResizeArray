@@ -301,7 +301,7 @@ module Module2 =
         throwsNull (fun () -> ResizeArray.maxBy funcStr   nullArr  |> ignore)
 
         // len = 0
-        throwsArg(fun() -> ResizeArray.maxBy funcInt (ResizeArray.empty<int>) |> ignore)
+        throwsArg(fun() -> ResizeArray.maxBy funcInt (ResizeArray<int>()) |> ignore)// <int>) |> ignore)
 
         ()
 
@@ -342,10 +342,10 @@ module Module2 =
 
         // null array
         let nullArr = null:ResizeArray<string>
-        throwsNull (fun () -> ResizeArray.minBy funcStr   nullArr  |> ignore)
+        throwsNull (fun () -> ResizeArray.minBy funcStr  nullArr |> ignore)
 
         // len = 0
-        throwsArg(fun () -> ResizeArray.minBy funcInt (ResizeArray.empty<int>) |> ignore)
+        throwsArg(fun () -> ResizeArray.minBy funcInt (ResizeArray<int>()) |> ignore) // <int>) |> ignore)
 
         ()
 
@@ -811,17 +811,17 @@ module Module2 =
         if resultEptInt <> 0 then Assert.Fail()
 
         // empty float32 array
-        let emptyFloatArray = ResizeArray.empty<System.Single>
+        let emptyFloatArray = ResizeArray<_>() // <System.Single>
         let resultEptFloat = ResizeArray.sum emptyFloatArray
         if resultEptFloat <> 0.0f then Assert.Fail()
 
         // empty double array
-        let emptyDoubleArray = ResizeArray.empty<System.Double>
+        let emptyDoubleArray = ResizeArray<_>() // <System.Double>
         let resultDouEmp = ResizeArray.sum emptyDoubleArray
         if resultDouEmp <> 0.0 then Assert.Fail()
 
         // empty decimal array
-        let emptyDecimalArray = ResizeArray.empty<System.Decimal>
+        let emptyDecimalArray = ResizeArray<_>() // <System.Decimal>
         let resultDecEmp = ResizeArray.sum emptyDecimalArray
         if resultDecEmp <> 0M then Assert.Fail()
 
@@ -868,17 +868,17 @@ module Module2 =
         if resultEptInt <> 0 then Assert.Fail()
     testCase "ResizeArray.SumBy 4" <| fun _ ->
         // empty float32 array
-        let emptyFloatArray = ResizeArray.empty<System.Single>
+        let emptyFloatArray = ResizeArray<_>() // <System.Single>
         let resultEptFloat = ResizeArray.sumBy float32 emptyFloatArray
         if resultEptFloat <> 0.0f then Assert.Fail()
     testCase "ResizeArray.SumBy 5" <| fun _ ->
         // empty double array
-        let emptyDoubleArray = ResizeArray.empty<System.Double>
+        let emptyDoubleArray = ResizeArray<_>() // <System.Double>
         let resultDouEmp = ResizeArray.sumBy float emptyDoubleArray
         if resultDouEmp <> 0.0 then Assert.Fail()
     testCase "ResizeArray.SumBy 6" <| fun _ ->
         // empty decimal array
-        let emptyDecimalArray = ResizeArray.empty<System.Decimal>
+        let emptyDecimalArray = ResizeArray<_>() // <System.Decimal>
         let resultDecEmp = ResizeArray.sumBy decimal emptyDecimalArray
         if resultDecEmp <> 0M then Assert.Fail()
     testCase "ResizeArray.SumBy 7" <| fun _ ->
@@ -930,6 +930,7 @@ module Module2 =
         // integer array
         let resultInt = ResizeArray.toList [|1..10 |].asRarr
         if resultInt <> [1..10] then Assert.Fail()
+
 
         // string array
         let resultStr = ResizeArray.toList [|"Lists"; "are";  "commonly" ; "list"  |].asRarr
@@ -1526,9 +1527,10 @@ module Module2 =
 
     testCase "slice2" <| fun _ ->
         let arr = [|0;1;2;3;4;5;6;7;8;9;10|].asRarr
-        Assert.AreEqual([|1;2;3;4;5|].asRarr, arr |> ResizeArray.slice 1 5)
-        Assert.AreEqual([|1;2;3;4;5;6;7;8;9;10|].asRarr, arr |> ResizeArray.slice 1 10)
-        Assert.AreEqual([|8;9;10|].asRarr, arr |> ResizeArray.slice -3 -1)
+        Assert.AreEqual([|1;2;3;4;5|].asRarr, arr |> ResizeArray.sliceIdx 1 5)
+        Assert.AreEqual([|1;2;3;4;5;6;7;8;9;10|].asRarr, arr |> ResizeArray.sliceIdx 1 10)
+        Assert.AreEqual([|8;9;10|].asRarr, arr |> ResizeArray.sliceLooped -3 -1)
+        throwsIdx ( fun () -> arr |> ResizeArray.sliceIdx -3 -1  |> ignore<_>)
 
     testCase "slice" <| fun _ ->
         let arr = [|0;1;2;3;4;5;6;7;8;9;10|].asRarr

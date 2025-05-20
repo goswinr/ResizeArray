@@ -138,12 +138,61 @@ module ResizeArray =
         if isNull arr then nullExn "third"
         arr.Third
 
-    /// Slice the Array given start and end index.
-    /// Allows for negative indices too. ( -1 is last item, like Python)
-    /// The resulting Array includes the end index.
-    /// Raises an IndexOutOfRangeException if indices are out of range.
-    /// If you don't want an exception to be raised for index overflow or overlap use Array.trim.
-    /// (A negative index can also be done with '^' prefix. E.g. ^0 for the last item, when F# Language preview features are enabled.)
+
+    /// <summary>
+    /// Give start and end index. The resulting ResizeArray includes the value at end index too.
+    /// This function will fail on out of bound indices, while the F# slicing notation xs.[1..3] will not.
+    /// To use negative indices or out of range indices use the ResizeArray.sliceLooped function.
+    /// </summary>
+    let sliceIdx (startIdx:int) (endIdx: int) (xs: ResizeArray<'T>): ResizeArray<'T> =
+        let count = xs.Count
+        let st  = startIdx //if startIdx< 0 then count + startIdx        else startIdx
+        let len = endIdx   //if endIdx  < 0 then count + endIdx - st + 1 else endIdx - st + 1
+        if st < 0 || st > count - 1 then
+            failIdx xs $"sliceIdx: Start index {startIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
+
+        if st+len > count then
+            failIdx xs $"sliceIdx: End index {endIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
+
+        if len < 0 then
+            // let en = if endIdx<0 then count+endIdx else endIdx
+            // let err = sprintf "ResizeArray.Slice: Start index '%A' (= %d) is bigger than end index '%A'(= %d) for ResizeArray of %d items" startIdx st endIdx en  count
+            failIdx xs $"sliceIdx: Start index {startIdx} is bigger than end index {endIdx} for ResizeArray of {count} items"
+
+        // ResizeArray.init len (fun i -> this.[st+i])
+        xs.GetRange(st, len)
+
+    /// <summary>
+    /// Give start and end index. The resulting ResizeArray includes the value at end index too.
+    /// Any index is valid, out of range indices set into range using modulo.
+    /// Allows for negative indices too. ( -1 is last item, like in Python)
+    /// The resulting ResizeArray includes the end index.
+    /// For empty input ResizeArray an empty ResizeArray is returned.
+    /// </summary>
+    /// <remarks>
+    /// Alternative: with F# slicing notation (e.g. a.[1..3])
+    /// With F# preview features enabled a negative index can also be done with '^' prefix. E.g. ^0 for the last item.
+    /// </remarks>
+    let sliceLooped(startIdx:int) (endIdx:int ) (xs: ResizeArray<'T>): ResizeArray<'T> =
+        if xs.Count = 0 then
+            ResizeArray<'T>()
+        else
+            let count = xs.Count
+            let st = UtilResizeArray.negIdxLooped startIdx count
+            let en = UtilResizeArray.negIdxLooped endIdx count
+            let len = en - st + 1
+            if len < 0 then
+                ResizeArray<'T>()
+            else
+                xs.GetRange(st, len)
+
+    (*
+    // Slice the Array given start and end index.
+    // Allows for negative indices too. ( -1 is last item, like Python)
+    // The resulting Array includes the end index.
+    // Raises an IndexOutOfRangeException if indices are out of range.
+    // If you don't want an exception to be raised for index overflow or overlap use Array.trim.
+    // (A negative index can also be done with '^' prefix. E.g. ^0 for the last item, when F# Language preview features are enabled.)
     let slice startIdx endIdx (arr: ResizeArray<'T>) : ResizeArray<'T> =
             if isNull arr then nullExn "slice"
         #if FABLE_COMPILER
@@ -166,6 +215,7 @@ module ResizeArray =
         #else
             arr.Slice(startIdx, endIdx)
         #endif
+    *)
 
     /// Trim items from start and end.
     /// If the sum of fromStartCount and fromEndCount is bigger than arr.Count it returns an empty Array.
@@ -857,19 +907,6 @@ module ResizeArray =
             l.Add arr.[i]
         l
 
-    /// Builds a new ResizeArray from the given Array.
-    /// In Fable-JavaScript the ResizeArray is just casted to an Array without allocating a new ResizeArray.
-    [<Obsolete("Use Array.asResizeArray instead")>]
-    let inline asResizeArray (arr: 'T[]) : ResizeArray<'T> =
-        if isNull arr then nullExn "asResizeArray"
-        #if FABLE_COMPILER_JAVASCRIPT
-        unbox arr
-        #else
-        let l = ResizeArray(arr.Length)
-        for i = 0 to arr.Length - 1 do
-            l.Add arr.[i]
-        l
-        #endif
 
     /// Build a ResizeArray from the given IList Interface.
     let inline ofIList (arr: IList<'T>) : ResizeArray<'T> =

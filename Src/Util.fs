@@ -38,10 +38,14 @@ module UtilResizeArray =
             raise <| IndexOutOfRangeException $"UtilResizeArray.negIdx: Bad index {i} for items count {len}."
         ii
 
+
+    let zeroLen() = raise <| ArgumentException $"ResizeArray.negIdxLooped: failed on zero Length."
+
     /// Any int will give a valid index for given collection size.
     /// Converts negative indices to positive ones and loops to start after last index is reached.
     /// Returns a valid index for a collection of 'length' items for any integer
     let inline negIdxLooped i length =
+        if length <= 0 then zeroLen()
         let t = i % length
         if t >= 0 then t else t + length
 

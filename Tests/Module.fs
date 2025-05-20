@@ -48,7 +48,7 @@ type Assert =
 
     static member Fail(message : string) = Exception(message) |> raise
 
-    static member Fail() = Assert.Fail("")
+    static member Fail() : unit = Assert.Fail("")
 
     static member True(condition : bool) =
         if not condition then
@@ -168,14 +168,14 @@ module Module =
         let c = [|[|[|1;4 |].asRarr; [|2;5 |].asRarr; [|3;0 |].asRarr |].asRarr; [||].asRarr|].asRarr
         Assert.False (ResizeArray.equals3 a c)
 
-    testCase "ResizeArray.Empty() " <| fun _ ->
-        let emptyArray = ResizeArray.empty<int>
+    testCase "ResizeArray<_>() // () " <| fun _ ->
+        let emptyArray = ResizeArray<_>() // <int>
         if ResizeArray.length emptyArray <> 0 then Assert.Fail()
 
-        let c : int ResizeArray   = ResizeArray.empty<int>
+        let c : int ResizeArray   = ResizeArray<_>() // <int>
         Assert.True( (c == [|   |].asRarr) )
 
-        let d = ResizeArray.empty<string>
+        let d = ResizeArray<_>() // <string>
         Assert.True( (d == [|   |].asRarr) )
         d.Add("a")
         Assert.True( (d == [| "a"  |].asRarr) )
@@ -239,15 +239,15 @@ module Module =
     testCase "ResizeArray.Average()1 " <| fun _ ->
 
         // empty float32 array
-        let emptyFloatArray = ResizeArray.empty<float32>
+        let emptyFloatArray = ResizeArray<float32>() // <float32>
         throwsArg(fun () -> ResizeArray.average emptyFloatArray |> ignore)
 
         // empty double array
-        let emptyDoubleArray = ResizeArray.empty<System.Double>
+        let emptyDoubleArray = ResizeArray<float>() // <System.Double>
         throwsArg(fun () -> ResizeArray.average emptyDoubleArray |> ignore)
 
         // empty decimal array
-        let emptyDecimalArray = ResizeArray.empty<System.Decimal>
+        let emptyDecimalArray = ResizeArray<decimal>() // <System.Decimal>
         throwsArg (fun () -> ResizeArray.average emptyDecimalArray |>ignore )
 
     testCase "ResizeArray.Average()2 " <| fun _ ->
@@ -277,7 +277,7 @@ module Module =
     testCase "ResizeArray.AverageBy() " <| fun _ ->
 
         // empty double array
-        let emptyDouArray = ResizeArray.empty<System.Double>
+        let emptyDouArray = ResizeArray<_>() // <System.Double>
         throwsArg(fun () -> ResizeArray.averageBy (fun x -> x + 6.7) emptyDouArray |> ignore)
 
         // empty float32 array
@@ -285,7 +285,7 @@ module Module =
         throwsArg(fun () -> ResizeArray.averageBy (fun x -> x + 9.8f) emptyFloat32Array |> ignore)
 
         // empty decimal array
-        let emptyDecimalArray = ResizeArray.empty<System.Decimal>
+        let emptyDecimalArray = ResizeArray<_>() // <System.Decimal>
         throwsArg(fun () -> ResizeArray.averageBy (fun x -> x + 9.8M) emptyDecimalArray |> ignore)
 
         // float32 array
@@ -1085,7 +1085,7 @@ module Module =
         Assert.AreEqual("third", strResult.Value)
 
         // Empty array
-        let emptyResult = ResizeArray.tryLast ResizeArray.empty<int>
+        let emptyResult = ResizeArray.tryLast (ResizeArray<int>()) // <int>
         Assert.True(emptyResult.IsNone)
 
         // null array
@@ -1874,7 +1874,11 @@ module Module =
     testCase "ResizeArray.SlicingUnboundedEnd() " <| fun _ ->
         let arr = [|1;2;3;4;5;6 |].asRarr
 
-        throwsIdx   (fun () -> arr.[-1..]|> ignore )
+        // throwsIdx   (fun () -> arr.[-1..]|> ignore )
+        Assert.AreEqual(arr.[-1..], arr)
+        Assert.AreEqual(arr.[-99..], arr)
+        Assert.AreEqual(arr.[-99..99], arr)
+        Assert.AreEqual(arr.[..99], arr)
         Assert.AreEqual(arr.[0..], arr)
         Assert.AreEqual(arr.[1..], [|2;3;4;5;6|].asRarr)
         Assert.AreEqual(arr.[2..], [|3;4;5;6|].asRarr)
@@ -1883,24 +1887,27 @@ module Module =
 
         //Assert.AreEqual(arr.[6..], ([| |].asRarr: int ResizeArray))
         //Assert.AreEqual(arr.[7..], ([| |].asRarr: int ResizeArray))
-        throwsIdx   (fun () -> arr.[..7]  |> ignore )
+        // throwsIdx   (fun () -> arr.[..7]  |> ignore )
 
+    testCase "ResizeArray.SlicingUnboundedStart()  -1" <| fun _ ->
+        let arr = [|1; 2 |].asRarr
+        Assert.AreEqual(arr.[ .. -1], [||].asRarr)
+        // throwsIdx   (fun () -> arr.[..(-1)]|> ignore )
 
     testCase "ResizeArray.SlicingUnboundedStart() " <| fun _ ->
         let arr = [|1;2;3;4;5;6 |].asRarr
-
-        throwsIdx   (fun () -> arr.[..(-1)]|> ignore )
         Assert.AreEqual(arr.[..1], [|1;2 |].asRarr)
         Assert.AreEqual(arr.[..2], [|1;2;3 |].asRarr)
         Assert.AreEqual(arr.[..3], [|1;2;3;4 |].asRarr)
         Assert.AreEqual(arr.[..4], [|1;2;3;4;5 |].asRarr)
         Assert.AreEqual(arr.[..5], [|1;2;3;4;5;6 |].asRarr)
-
-
         //Assert.AreEqual(arr.[..6], [|1;2;3;4;5;6 |].asRarr)
         //Assert.AreEqual(arr.[..7], [|1;2;3;4;5;6 |].asRarr)
-        throwsIdx   (fun () -> arr.[..6]  |> ignore )
-        throwsIdx   (fun () -> arr.[..7]  |> ignore )
+
+    // testCase "ResizeArray.SlicingUnboundedStart() +6" <| fun _ ->
+    //     let arr = [|1;2;3;4;5;6 |].asRarr
+    //     throwsIdx   (fun () -> arr.[..6]  |> ignore )
+    //     throwsIdx   (fun () -> arr.[..7]  |> ignore )
 
 
 
@@ -1928,37 +1935,55 @@ module Module =
         //Assert.AreEqual(arr.[4..1], ([| |].asRarr: int ResizeArray))
         //Assert.AreEqual(arr.[3..1], ([| |].asRarr: int ResizeArray))
         //Assert.AreEqual(arr.[2..1], ([| |].asRarr: int ResizeArray))
-        throwsIdx   (fun () -> arr.[2..1]  |> ignore )
-        throwsIdx   (fun () -> arr.[3..1]  |> ignore )
-        throwsIdx   (fun () -> arr.[4..3]  |> ignore )
+
+    testCase "ResizeArray.SlicingBoundedStartEnd() bad order" <| fun _ ->
+        let arr = [|1;2;3;4;5;6 |].asRarr
+        Assert.AreEqual(arr.[2..1], [||].asRarr)
+    //     throwsIdx   (fun () -> arr.[2..1]  |> ignore )
+    //     throwsIdx   (fun () -> arr.[3..1]  |> ignore )
+    //     throwsIdx   (fun () -> arr.[4..3]  |> ignore )
 
     testCase "ResizeArray.SlicingEmptyArray() " <| fun _ ->
 
-        let empty = ResizeArray.empty<int>
+        let empty = ResizeArray<_>() // <int>
         Assert.AreEqual(empty.[*], ([| |].asRarr: ResizeArray<int>))
-        throwsIdx   (fun () -> empty.[5..3] |> ignore )
-        throwsIdx   (fun () -> empty.[0..]  |> ignore )
-        throwsIdx   (fun () -> empty.[0..0] |> ignore )
-        throwsIdx   (fun () -> empty.[0..1] |> ignore )
-        throwsIdx   (fun () -> empty.[3..5] |> ignore )
+        // throwsIdx   (fun () -> empty.[5..3] |> ignore )
+        // throwsIdx   (fun () -> empty.[0..]  |> ignore )
+        // throwsIdx   (fun () -> empty.[0..0] |> ignore )
+        // throwsIdx   (fun () -> empty.[0..1] |> ignore )
+        // throwsIdx   (fun () -> empty.[3..5] |> ignore )
+        Assert.AreEqual(empty.[-1..1], [||].asRarr)
 
 
-    testCase "ResizeArray.SlicingOutOfBounds() " <| fun _ ->
-        let arr = [|1;2;3;4;5;6 |].asRarr
+    testCase "ResizeArray.SlicingOutOfBounds() [-1..1] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        Assert.AreEqual(arr.[-1..1], [|1;2|].asRarr)
 
-        throwsIdx   (fun () -> arr.[..6] |> ignore )
-        throwsIdx   (fun () -> arr.[6..] |> ignore )
+    testCase "ResizeArray.SlicingOutOfBounds() [2..1] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        Assert.AreEqual(arr.[2..1], [||].asRarr)
 
-        throwsIdx   (fun () -> arr.[0..(-1)] |> ignore )
-        throwsIdx   (fun () -> arr.[1..(-1)] |> ignore )
-        throwsIdx   (fun () -> arr.[1..0] |> ignore )
-        throwsIdx   (fun () -> arr.[0..6] |> ignore )
-        throwsIdx   (fun () -> arr.[1..6] |> ignore )
+    testCase "ResizeArray.SlicingOutOfBounds() [2..9] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        Assert.AreEqual(arr.[2..9], [|3|].asRarr)
 
-        throwsIdx   (fun () -> arr.[-1..1]    |> ignore )
-        throwsIdx   (fun () -> arr.[-3..(-4)] |> ignore )
-        throwsIdx   (fun () -> arr.[-4..(-3)] |> ignore )
+    testCase "ResizeArray.SlicingOutOfBounds() [10..8] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        Assert.AreEqual(arr.[10 .. 8 ], [||].asRarr)
 
+    testCase "ResizeArray.SlicingOutOfBounds() [-1 2] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        throwsIdx   (fun () -> arr.SliceIdx(-1,2)|> ignore )
+
+    testCase "ResizeArray.SlicingOutOfBounds() [0 9] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        throwsIdx   (fun () -> arr.SliceIdx(0,9)|> ignore )
+
+    testCase "ResizeArray.SlicingOutOfBounds() [..] " <| fun _ ->
+        let arr = [|1;2;3|].asRarr
+        Assert.AreEqual(arr.SliceLooped(-1,0), [||].asRarr)
+        Assert.AreEqual(arr.SliceLooped(-1,-1), [|3|].asRarr)
+        Assert.AreEqual(arr.SliceLooped(3,4), [|1;2|].asRarr)
 
 
   ]

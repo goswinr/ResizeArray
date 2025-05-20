@@ -184,8 +184,6 @@ module AutoOpenResizeArrayExtensions =
 
 
 
-
-
         /// Shallow Structural equality comparison.
         /// Compares each element in both lists for equality.
         /// However nested ResizeArrays inside a ResizeArray are only compared for referential equality in .NET.
@@ -249,43 +247,44 @@ module AutoOpenResizeArrayExtensions =
                 failIdx xs $"[^{offset}]: index from back is equal or bigger than resizeArray.Count"
             xs.Count - offset - 1
 
+        /// <summary>
         /// This member enables F# slicing notation operator. e.g:  xs.[1..3].
         /// The resulting ResizeArray includes the end index.
-        /// xs.[0 .. -1] will return an empty ResizeArray.
-        /// Raises an ArgumentException if indices are out of range.
-        /// For indexing from the end use the ^ prefix. e.g. ^0 for the last item.
+        /// Just like for F# arrays out of bounds indices are ignored for getting a slice. (But not for setting it.)
+        /// The start index is inclusive and the end index is also inclusive.
+        /// </summary>
+        /// <remarks>
+        /// With F# preview features enabled a negative index can also be done with '^' prefix. E.g. ^0 for the last item.
+        /// </remarks>
         member xs.GetSlice(startIdx: option<int>, endIdx: option<int>) : ResizeArray<'T> =
             //.GetSlice maps onto slicing operator .[1..3]
-            let count = xs.Count
             let stIdx =
                 match startIdx with
                 | None -> 0
-                | Some si ->
-                    if si < 0 || si >= count then
-                        failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: start index must be between 0 and {count - 1} for ResizeArray of {count} items."
-                    si
+                | Some si -> max 0 si // start index must be >= 0
 
             let enIdx =
                 match endIdx with
-                | None -> count - 1
-                | Some ei ->
-                    if ei < -1 || ei >= count then // -1 is ok to get an empty slice when startIdx is 0
-                        failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: end index must be between -1 and {count - 1} for ResizeArray of {count} items."
-                    else
-                        ei
-
+                | None -> xs.Count - 1
+                | Some ei -> min ei (xs.Count - 1)
 
             // end must be same or bigger than start
             // if enIdx >= 0 && stIdx > enIdx then
             let len = enIdx - stIdx + 1
             if len < 0 then
-                failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}], The given start index must be smaller than or equal to the end index for ResizeArray of {count} items."
+                new ResizeArray<'T>() // empty ResizeArray
+            else
+                xs.GetRange(stIdx, len)
 
-            xs.GetRange(stIdx, enIdx - stIdx + 1)
-
-        /// This member enables F# slicing notation operator e.g.: xs.[1..3] <- ys.
+        /// <summary>
+        /// This member enables F# slicing notation operator e.g.: xs.[1..3] &lt;- ys.
         /// The the end index is included.
-        /// For indexing from the end use the ^ prefix. e.g. ^0 for the last item.
+        /// Just like for F# arrays out of bounds indices raise an Exception for setting a slice. (But not for getting it.)
+        /// If the list of new values is longer than the slice the extra values are ignored.( just like for F# arrays)
+        /// </summary>
+        /// <remarks>
+        /// With F# preview features enabled a negative index can also be done with '^' prefix. E.g. ^0 for the last item.
+        /// </remarks>
         member xs.SetSlice(startIdx: option<int>, endIdx: option<int>, newValues: IList<'T>) : unit =
             //.SetSlice maps onto slicing operator .[1..3] <- xs
             let count = xs.Count
@@ -294,7 +293,7 @@ module AutoOpenResizeArrayExtensions =
                 | None -> 0
                 | Some si ->
                     if si < 0 || si >= count then
-                        failIdx xs  $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: start index must be between 0 and {count - 1} for ResizeArray of {count} items."
+                        failIdx xs  $"SetSlice: [{debugTxt startIdx}..{debugTxt endIdx}], start index must be between 0 and {count - 1} for ResizeArray of {count} items."
                     si
 
             let enIdx =
@@ -302,7 +301,7 @@ module AutoOpenResizeArrayExtensions =
                 | None -> count - 1
                 | Some ei ->
                     if ei < 0 || ei >= count then
-                        failIdx xs  $"[{debugTxt startIdx}..{debugTxt endIdx}], GetSlice: end index must be between 0 and {count - 1} for ResizeArray of {count} items."
+                        failIdx xs  $"SetSlice: [{debugTxt startIdx}..{debugTxt endIdx}], end index must be between 0 and {count - 1} for ResizeArray of {count} items."
                     else
                         ei
 
@@ -311,45 +310,81 @@ module AutoOpenResizeArrayExtensions =
                 failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}, The given start index must be smaller than or equal to the end index for ResizeArray of {count} items."
 
             let countToAdd = enIdx - stIdx + 1
-            if newValues.Count <> countToAdd then
+            if newValues.Count < countToAdd then
                 failIdx xs $"[{debugTxt startIdx}..{debugTxt endIdx}, SetSlice expected {countToAdd} item in newValues IList but only found {newValues.Count}"
 
             for i = stIdx to enIdx do
                 xs.[i] <- newValues.[i - stIdx]
 
-        /// Allows for negative indices too. ( -1 is last item, like Python)
-        /// The resulting array includes the end index.
+        /// <summary>
+        /// Give start and end index. The resulting ResizeArray includes the value at end index too.
+        /// This function will fail on out of bound indices, while the F# slicing notation xs.[1..3] will not.
+        /// To use negative indices or out of range indices use the SliceLooped method.
+        /// Do not confuse this method with the new xs.Slice(start , length) method, that is built into .NET
+        /// </summary>
+        /// <param name="startIdx">The start index of the slice.</param>
+        /// <param name="endIdx">The end index of the slice.</param>
+        /// <remarks>
         /// Alternative: with F# slicing notation (e.g. a.[1..3])
         /// With F# preview features enabled a negative index can also be done with '^' prefix. E.g. ^0 for the last item.
-        member xs.Slice(startIdx:int , endIdx: int ) : ResizeArray<'T> =
+        /// </remarks>
+        member xs.SliceIdx(startIdx:int , endIdx: int ) : ResizeArray<'T> =
             let count = xs.Count
-            let st  = if startIdx< 0 then count + startIdx        else startIdx
-            let len = if endIdx  < 0 then count + endIdx - st + 1 else endIdx - st + 1
+            let st  = startIdx //if startIdx< 0 then count + startIdx        else startIdx
+            let len = endIdx   //if endIdx  < 0 then count + endIdx - st + 1 else endIdx - st + 1
             if st < 0 || st > count - 1 then
-                failIdx xs $"Slice: Start index {startIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
+                failIdx xs $"SliceIdx: Start index {startIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
 
             if st+len > count then
-                failIdx xs $"Slice: End index {endIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
+                failIdx xs $"SliceIdx: End index {endIdx} is out of range. Allowed values are -{count} up to {count-1} for ResizeArray of {count} items"
 
             if len < 0 then
                 // let en = if endIdx<0 then count+endIdx else endIdx
                 // let err = sprintf "ResizeArray.Slice: Start index '%A' (= %d) is bigger than end index '%A'(= %d) for ResizeArray of %d items" startIdx st endIdx en  count
-                failIdx xs $"Slice: Start index {startIdx} is bigger than end index {endIdx} for ResizeArray of {count} items"
+                failIdx xs $"SliceIdx: Start index {startIdx} is bigger than end index {endIdx} for ResizeArray of {count} items"
 
             // ResizeArray.init len (fun i -> this.[st+i])
             xs.GetRange(st, len)
 
+        /// <summary>
+        /// Give start and end index. The resulting ResizeArray includes the value at end index too.
+        /// Any index is valid, out of range indices set into range using modulo.
+        /// Allows for negative indices too. ( -1 is last item, like in Python)
+        /// The resulting ResizeArray includes the end index.
+        /// If the start index is bigger than the end index an empty ResizeArray is returned.
+        /// For empty input ResizeArray an empty ResizeArray is returned.
+        /// </summary>
+        /// <param name="startIdx">The start index of the slice.</param>
+        /// <param name="endIdx">The end index of the slice.</param>
+        /// <remarks>
+        /// Alternative: with F# slicing notation (e.g. a.[1..3])
+        /// With F# preview features enabled a negative index can also be done with '^' prefix. E.g. ^0 for the last item.
+        /// </remarks>
+        member xs.SliceLooped(startIdx:int , endIdx:int ) : ResizeArray<'T> =
+            if xs.Count = 0 then
+                ResizeArray<'T>()
+            else
+                let count = xs.Count
+                let st = UtilResizeArray.negIdxLooped startIdx count
+                let en = UtilResizeArray.negIdxLooped endIdx count
+                let len = en - st + 1
+                if len < 0 then
+                    ResizeArray<'T>()
+                else
+                    xs.GetRange(st, len)
+
+
         /// Raises an Exception if the ResizeArray is empty
         /// (Useful for chaining)
         /// Returns the input ResizeArray
-        member inline xs.FailIfEmpty (errorMessage: string) =
+        member inline xs.FailIfEmpty (errorMessage: string) : ResizeArray<'T> =
             if xs.Count = 0 then failSimpel $".FailIfEmpty: {errorMessage}"
             xs
 
         /// Raises an Exception if the ResizeArray has less then count items.
         /// (Useful for chaining)
         /// Returns the input ResizeArray
-        member inline xs.FailIfLessThan(count, errorMessage: string) =
+        member inline xs.FailIfLessThan(count, errorMessage: string)  : ResizeArray<'T> =
             if xs.Count < count then failSimpel $"FailIfLessThan {count}: {errorMessage}"
             xs
 
