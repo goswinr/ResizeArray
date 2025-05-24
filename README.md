@@ -1,4 +1,3 @@
-
 ![Logo](https://raw.githubusercontent.com/goswinr/ResizeArrayT/main/Docs/img/logo128.png)
 # ResizeArrayT
 
@@ -68,15 +67,15 @@ then you can do:
 
 ```fsharp
 let evenNumbers =
-    resizeArray {  // a Computational Expressions like seq
-        for i = 0 t 99 do
+    resizeArray {  // a Computational Expression like seq
+        for i = 0 to 99 do
             if i % 2 = 0 then
                 i
     }
 
 let oddNumbers = evenNumbers |> ResizeArray.map (fun x -> x + 1) // ResizeArray module
 
-let hundred = oddNumbers.Last // Extension member to access the last item in list
+let hundred = oddNumbers.Last // Extension member to access the last item in the list
 
 ```
 
