@@ -6,9 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-## [0.23.0] - 2025-05-21
+## [0.23.0] - 2025-05-24
 ### Changed
 - renamed main namespace an nuget from `ResizeArray` to `ResizeArrayT`
+- .[startIdx .. endIdx] slicing error cases aligned with F# array slicing
+- added .SliceLooped function with any integer as valid index
+- added .SliceIdx function to distinguish from List<'T> built in .Slice(start,length)
 
 ## [0.22.0] - 2025-02-21
 ### Added
